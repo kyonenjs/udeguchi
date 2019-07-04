@@ -1,0 +1,6 @@
+node_modules/
+.idea/
+cookie.txt
+cached_cookie.json
+package-lock.json
+yarn.lock
