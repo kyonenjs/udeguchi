@@ -77,13 +77,9 @@ $ node app.js -k cookie.txt https://www.udemy.com/course-name/
 ```
 ### `Do you have step by step guide ? Of course ^^`  
 
- * Chrome users
+ * [Chrome users](https://github.com/kyonenjs/udeguchi/issues/1#issuecomment-508435783)
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code> https:// </code>
-
- * Firefox users
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code> https:// </code>
+ * [Firefox users](https://github.com/kyonenjs/udeguchi/issues/1#issuecomment-508431489)
 
 ## Options
 ### `What options we have here`
