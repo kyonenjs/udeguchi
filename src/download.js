@@ -235,6 +235,13 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 
 		if (video_lecture['asset']['hls_url']) {
 			try {
+				process.stdout.write(`\n  ${magenta(inverse(' Lecture '))}  ${video_name}`);
+
+				if (fs.existsSync(path.join(chapter_Path, `${video_name}.mp4`))) {
+					process.stdout.write(`  ${yellow('(already downloaded)')}\n`);
+					return callback(content, chapter_Path);
+				}
+
 				const response = await get_request(
 					`https${video_lecture['asset']['hls_url'].slice(5)}`,
 					get_video_headers
@@ -255,13 +262,6 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 						// choose second resolution
 						quality_position = ` -map p:${video_quality_index}`;
 					}
-				}
-
-				process.stdout.write(`\n  ${magenta(inverse(' Lecture '))}  ${video_name}`);
-
-				if (fs.existsSync(path.join(chapter_Path, `${video_name}.mp4`))) {
-					process.stdout.write(`  ${yellow('(already downloaded)')}\n`);
-					return callback(content, chapter_Path);
 				}
 
 				exec(
@@ -286,6 +286,13 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 				handle_error(error['message']);
 			}
 		} else if (video_lecture['asset']['download_urls'] || video_lecture['asset']['stream_urls']) {
+			process.stdout.write(`\n  ${magenta(inverse(' Lecture '))}  ${video_name}`);
+
+			if (fs.existsSync(path.join(chapter_Path, `${video_name}.mp4`))) {
+				process.stdout.write(`  ${yellow('(already downloaded)')}\n`);
+				return callback(content, chapter_Path);
+			}
+
 			const urls_location =
 				video_lecture['asset']['download_urls'] || video_lecture['asset']['stream_urls'];
 			const qualities = urls_location['Video'].map(q => parseInt(q['label'], 10));
@@ -305,13 +312,6 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 			const best_video_quality = urls_location['Video'].find(
 				v => v['label'] === `${sorted_qualities[quality_index]}`
 			);
-
-			process.stdout.write(`\n  ${magenta(inverse(' Lecture '))}  ${video_name}`);
-
-			if (fs.existsSync(path.join(chapter_Path, `${video_name}.mp4`))) {
-				process.stdout.write(`  ${yellow('(already downloaded)')}\n`);
-				return callback(content, chapter_Path);
-			}
 
 			const video_url = best_video_quality['file'].replace(/&/g, `^&`);
 
