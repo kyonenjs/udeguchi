@@ -33,7 +33,7 @@ You can download and install at : https://nodejs.org/en/
 - Windows 32-bit : https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-4.1.3-win32-static.zip
 - macOS          : https://evermeet.cx/ffmpeg/ffmpeg-4.1.3.dmg
 - Linux 64-bit   : https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
-- Linus 32-bit   : https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-i686-static.tar.xz
+- Linux 32-bit   : https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-i686-static.tar.xz
 
 But i don't know my system is 64-bit or 32-bit ?
 Use command: node -p process.arch
@@ -45,7 +45,7 @@ x32 is 32-bit
 > **Windows**
 ```
 Unzip, open folder just unzipped, go to '/bin' folder
-and copy file name 'ffmpeg.exe' (Windows) into udeguchi folder.
+and copy file name 'ffmpeg.exe' into udeguchi folder.
 ```
 
 > **macOS**
@@ -64,7 +64,7 @@ Open folder just unzipped, copy file name 'ffmpeg' into udeguchi folder.
 ```
 ### &#x2198; npm dependencies
 ```
-*require node installed*
+*require nodejs installed*
 
 inside udeguchi folder, open terminal and type command: npm install
 ```
