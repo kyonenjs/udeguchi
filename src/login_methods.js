@@ -33,6 +33,10 @@ const login_with_username_password = async (username, password) => {
 
 		return create_auth_headers(access_token);
 	} catch (error) {
+		if (error['code'] === 'ENOTFOUND') {
+			handle_error('Unable to connect to Udemy server');
+		}
+
 		handle_error(error['message']);
 	}
 };

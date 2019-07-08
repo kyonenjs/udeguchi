@@ -42,6 +42,8 @@ const find_draft_course = async (headers, course_id) => {
 	} catch (error) {
 		if (error['statusCode'] === 403) {
 			handle_error('You do not owned this course');
+		} else if (error['code'] === 'ENOTFOUND') {
+			handle_error('Unable to connect to Udemy server');
 		}
 
 		handle_error(error['message']);
@@ -94,6 +96,8 @@ const find_course = async (headers, course_url_name) => {
 			handle_error('Cookie is not valid');
 		} else if (error['message'].includes('Cannot read property')) {
 			handle_error('Course URL is not valid');
+		} else if (error['code'] === 'ENOTFOUND') {
+			handle_error('Unable to connect to Udemy server');
 		}
 
 		handle_error('You do not owned the course');

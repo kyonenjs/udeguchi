@@ -372,8 +372,10 @@ const download_course_one_request = async (course_content_url, auth_headers, con
 				chapterPath
 			);
 		} catch (error) {
-			if (error.statusCode === 502) {
+			if (error['statusCode'] === 502) {
 				return download_course_multi_request(course_content_url, auth_headers, course_path);
+			} else if (error['code'] === 'ENOTFOUND') {
+				handle_error('Unable to connect to Udemy server');
 			}
 
 			handle_error(error['message']);
