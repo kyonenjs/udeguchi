@@ -15,12 +15,18 @@ commander
 	.option('--lang <language>', 'Only download subtitle with this language')
 	.option('-q, --quality <quality>', 'Video Quality')
 	.option('-o, --output <location>', 'Download files to this location')
+	.option('--chapter-start <chapterNumber>', 'Start download at this chapter')
+	.option('--chapter-end <chapterNumber>', 'Stop download at this chapter (not include)')
 	.parse(process.argv);
 
 const { handle_error, extract_course_name } = require('./src/utilities.js');
 const { find_owned_course } = require('./src/search.js');
 const { login_with_username_password, login_with_cookie } = require('./src/login_methods.js');
 const { use_cached_cookie } = require('./src/login_cached.js');
+
+if (commander.chapterStart && !(parseInt(commander.chapterStart, 10) > 0)) {
+	handle_error('Invalid chapter');
+}
 
 let ffmpeg_name = '';
 if (process.platform === 'win32') {

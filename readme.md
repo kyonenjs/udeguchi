@@ -6,6 +6,7 @@
 - Support download 1080p
 - Support download draft courses
 - Support download with business account
+- Support download selected chapters
 - Login with cookie
 - Download subtitle with the language you want
 - Choose video quality to download
@@ -93,13 +94,15 @@ $ node app.js -k cookie.txt https://www.udemy.com/course-name/
 
 ## Options
 ### `What options we have here`
-  * `-k` _or_ `--cookie`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Login with cookie
-  * `-u` _or_ `--username`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Username
-  * `-p` _or_ `--password`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Password
-  * `--lang <language>`&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Only download subtitles with this language  
-  * `--skip-sub`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;​Skip download subtitles  
-  * `-q` _or_ `--quality`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Download video with this quality if available  
-  * `-o` _or_ `--output`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Download course to this location  
+  * `-k` _or_ `--cookie`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Login with cookie
+  * `-u` _or_ `--username`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Username
+  * `-p` _or_ `--password`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Password
+  * `--lang <language>`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Only download subtitles with this language  
+  * `--skip-sub`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;​Skip download subtitles  
+  * `-q` _or_ `--quality`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Download video with this quality if available  
+  * `-o` _or_ `--output`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Download course to this location  
+  * `--chapter-start <chapterNumber>`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Start download at this chapter  
+  * `--chapter-end <chapterNumber>`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Stop download at this chapter (not include)  
 
 ### `That's good, but how to use it ?`
 * `-k` _or_ `--cookie`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Login with cookie
@@ -160,6 +163,20 @@ $ node app.js -o ..\newLocation https://www.udemy.com/course-name/
 or 
 
 $ node app.js --output ..\newLocation https://www.udemy.com/course-name/ 
+```
+> &nbsp;  
+> &nbsp;  
+  * `--chapter-start <chapterNumber>`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Start download at this chapter  
+  * `--chapter-end <chapterNumber>`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Stop download at this chapter (not include)
+```
+<Download from chapter 3 to end>
+$ node app.js --chapter-start 3 https://www.udemy.com/course-name/
+
+<Download from chapter 2 to chapter 5 (not include chapter 5)>
+$ node app.js --chapter-start 2 --chapter-end 5 https://www.udemy.com/course-name/
+
+<Download from begin to chapter 7 (not include chapter 7)>
+$ node app.js --chapter-end 7 https://www.udemy.com/course-name/
 ```
 
 ## License

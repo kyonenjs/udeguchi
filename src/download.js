@@ -3,7 +3,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const commander = require('commander');
 const got = require('got');
-const { cyan, green, inverse, yellow, magenta, gray } = require('kleur');
+const { cyan, green, inverse, yellow, magenta, gray, red } = require('kleur');
 const { headers: original_headers, sub_domain } = require('./references.js');
 const { get_request, handle_error } = require('./utilities.js');
 
@@ -335,6 +335,45 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 	}
 };
 
+const filter_course_data = (data, start, end) => {
+	const lectures = data.filter(content => {
+		try {
+			return (
+				content['_class'] === 'chapter' ||
+				(content['_class'] === 'lecture' &&
+					content['asset']['asset_type'] === 'Video') ||
+				(content['_class'] === 'lecture' &&
+					content['asset']['asset_type'] === 'Article')
+			);
+		} catch (error) {
+			handle_error(error['message']);
+		}
+	});
+
+	const chapters = data.filter(c => c['_class'] === 'chapter');
+
+	if (start && parseInt(start, 10) <= chapters.length) {
+		const start_index = lectures.findIndex(c => c['_class'] === 'chapter' && c['object_index'] === parseInt(start, 10));
+		if (parseInt(end, 10) > parseInt(start, 10)) {
+			const end_index = lectures.findIndex(c => c['_class'] === 'chapter' && c['object_index'] === parseInt(end, 10));
+			if (end_index !== -1) {
+				return lectures.splice(start_index, end_index - start_index);
+			}
+		}
+
+		return lectures.splice(start_index);
+	} else if (start && parseInt(start, 10) > chapters.length) {
+		handle_error(`Course only have ${yellow(chapters.length)} chapters but you start at chapter ${red(start)}`);
+	}
+
+	if (end && parseInt(end, 10) <= chapters.length) {
+		const end_index = lectures.findIndex(c => c['_class'] === 'chapter' && c['object_index'] === parseInt(end, 10));
+		return lectures.splice(0, end_index);
+	}
+
+	return lectures;
+};
+
 const download_course_one_request = async (course_content_url, auth_headers, content, course_path, chapterPath) => {
 	if (course_content_url) {
 		try {
@@ -343,19 +382,9 @@ const download_course_one_request = async (course_content_url, auth_headers, con
 			process.stdout.write(`  ${green(inverse(' Done '))}\n`);
 
 			const data = JSON.parse(response.body).results;
-			const lectures = data.filter(content => {
-				try {
-					return (
-						content['_class'] === 'chapter' ||
-						(content['_class'] === 'lecture' &&
-							content['asset']['asset_type'] === 'Video') ||
-						(content['_class'] === 'lecture' &&
-							content['asset']['asset_type'] === 'Article')
-					);
-				} catch (error) {
-					handle_error(error['message']);
-				}
-			});
+
+			const lectures = filter_course_data(data, commander.chapterStart, commander.chapterEnd);
+
 			download_lecture_video(
 				lectures,
 				(course_contents, chapter_Path) => {
