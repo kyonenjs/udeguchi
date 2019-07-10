@@ -28,6 +28,10 @@ if (commander.chapterStart && !(parseInt(commander.chapterStart, 10) > 0)) {
 	handle_error('Invalid chapter');
 }
 
+if (!commander.chapterStart && commander.chapterEnd && !(parseInt(commander.chapterEnd, 10) > 1)) {
+        handle_error(`End chapter should be greater than 1`);
+}
+
 let ffmpeg_name = '';
 if (process.platform === 'win32') {
 	ffmpeg_name = 'ffmpeg.exe';
