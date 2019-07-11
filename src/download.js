@@ -131,6 +131,16 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 		'User-Agent': 'okhttp/3.11.0'
 	};
 
+	if (commander.lang) {
+		const lang = sub.find(lang =>
+			lang['locale_id'].toLowerCase().includes(commander.lang.toLowerCase())
+		);
+
+		if (lang) {
+			sub = [lang];
+		}
+	}
+
 	try {
 		sub.forEach(async subtitle => {
 			const subtitle_url = subtitle['url'];
@@ -188,20 +198,7 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 
 		if (!commander.skipSub) {
 			if (video_lecture['asset']['captions'].length !== 0) {
-				if (commander.lang) {
-					const lang = video_lecture['asset']['captions'].find(lang =>
-						lang['locale_id'].toLowerCase().includes(commander.lang.toLowerCase())
-					);
-					if (lang) {
-						download_subtitles([lang], video_name, chapter_Path);
-					}
-				} else {
-					download_subtitles(
-						video_lecture['asset']['captions'],
-						video_name,
-						chapter_Path
-					);
-				}
+				download_subtitles(video_lecture['asset']['captions'], video_name, chapter_Path);
 			}
 		}
 
