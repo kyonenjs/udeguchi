@@ -64,7 +64,7 @@ const download_asset_external_link = (asset_name, asset_title, asset) => {
 
 // Download files with link from Udemy
 const download_asset_file = (asset_name, asset_title, asset) => {
-	const asset_url = asset['download_urls']['File'][0]['file'];
+	const asset_url = asset['url_set']['File'][0]['file'];
 
 	const stream = got.stream(asset_url, {
 		headers: { 'User-Agent': original_headers['User-Agent'] }
@@ -165,12 +165,81 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 	}
 };
 
-const download_lecture_video = async (content, callback, course_path, chapter_Path) => {
-	const get_video_headers = {
-		'User-Agent':
-			'Udemy/5.5.2 (Linux;Android 7.1.2) ExoPlayerLib/2.8.2/5.5.2 (Linux;Android 7.1.2) ExoPlayerLib/2.8.2'
-	};
+const download_hls_video = async (url, video_name, chapter_path, content, callback) => {
+	const response = await get_request(
+		url,
+		{'User-Agent': original_headers['User-Agent']}
+	);
 
+	const video_resolutions = response.body
+		.match(/(?:hls_)(\d{3,4})/g)
+		.map(r => r.slice(4));
+
+	let video_quality_index = 0;
+	let quality_position = ' ';
+	if (commander.quality) {
+		video_quality_index = video_resolutions.findIndex(
+			r => r === `${commander.quality}`
+		);
+		if (video_quality_index !== -1) {
+			// -map p:1
+			// choose second resolution
+			quality_position = ` -map p:${video_quality_index} `;
+		}
+
+	}
+
+	save_video(url, quality_position, video_name, chapter_path, content, callback);
+};
+
+const download_mp4_video = (urls_location, video_name, chapter_path, content, callback) => {
+	const qualities = urls_location.map(q => parseInt(q['label'], 10));
+	const sorted_qualities = qualities.sort((el1, el2) => el1 - el2).reverse();
+
+	let quality_index = 0;
+	if (commander.quality) {
+		if (parseInt(commander.quality, 10)) {
+			if (sorted_qualities.includes(parseInt(commander.quality, 10))) {
+				quality_index = sorted_qualities.findIndex(
+					i => i === parseInt(commander.quality, 10)
+				);
+			}
+		}
+	}
+
+	const best_video_quality = urls_location.find(
+		v => v['label'] === `${sorted_qualities[quality_index]}`
+	);
+
+	const video_url = best_video_quality['file'].replace(/&/g, '^&');
+
+	save_video(video_url, undefined, video_name, chapter_path, content, callback);
+};
+
+const save_video = (url, quality_position, video_name, chapter_path, content, callback) => {
+	const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+
+	const download_command = quality_position ?
+		`-y -i "${url}"${quality_position}-acodec copy -bsf:a aac_adtstoasc -vcodec` :
+		`-headers "User-Agent: ${original_headers['User-Agent']}" -y -i ${url} -c`;
+
+	exec(
+		`${path.join(process.cwd(), ffmpeg_name)} ${download_command} copy "${path.join(
+			chapter_path,
+			`${video_name}.mp4`
+		)}"`,
+		err => {
+			if (err) {
+				handle_error('Failed to download the video!');
+			}
+
+			console.log(`  ${green().inverse(' Done ')}`);
+			callback(content, chapter_path);
+		}
+	);
+};
+
+const download_lecture_video = async (content, callback, course_path, chapter_Path) => {
 	if (content[0]['_class'] === 'chapter') {
 		chapter_Path = create_chapter_folder(content, course_path);
 		content.shift();
@@ -210,108 +279,26 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 			);
 		}
 
-		let ffmpeg_name = '';
-		if (process.platform === 'win32') {
-			ffmpeg_name = 'ffmpeg.exe';
-		} else {
-			ffmpeg_name = 'ffmpeg';
-		}
-
-		if (video_lecture['asset']['hls_url']) {
+		if (video_lecture['asset']['url_set']) {
 			try {
 				process.stdout.write(`\n  ${magenta(inverse(' Lecture '))}  ${video_name}`);
 
 				if (fs.existsSync(path.join(chapter_Path, `${video_name}.mp4`))) {
-					process.stdout.write(`  ${yellow('(already downloaded)')}\n`);
+					console.log(`  ${yellow('(already downloaded)')}`);
 					return callback(content, chapter_Path);
 				}
 
-				const response = await get_request(
-					`https${video_lecture['asset']['hls_url'].slice(5)}`,
-					get_video_headers
-				);
+				const urls_location = video_lecture['asset']['url_set']['Video'];
+				const hls_link = video_lecture['asset']['hls_url'];
 
-				const video_resolutions = response.body
-					.match(/(?:hls_)(\d{3,4})/g)
-					.map(r => r.slice(4));
-
-				let video_quality_index = 0;
-				let quality_position = '';
-				if (commander.quality) {
-					video_quality_index = video_resolutions.findIndex(
-						r => r === `${commander.quality}`
-					);
-					if (video_quality_index !== -1) {
-						// -map p:1
-						// choose second resolution
-						quality_position = ` -map p:${video_quality_index}`;
-					}
+				if (hls_link) {
+					download_hls_video(`https${hls_link.slice(5)}`, video_name, chapter_Path, content, callback);
+				} else {
+					download_mp4_video(urls_location, video_name, chapter_Path, content, callback);
 				}
-
-				exec(
-					`${path.join(process.cwd(), ffmpeg_name)} -y -i "https${video_lecture['asset'][
-						'hls_url'
-					].slice(
-						5
-					)}"${quality_position} -acodec copy -bsf:a aac_adtstoasc -vcodec copy "${path.join(
-						chapter_Path,
-						`${video_name}.mp4`
-					)}"`,
-					(err, stdout, stderr) => {
-						if (err) {
-							handle_error('Failed to download the video!');
-						}
-
-						process.stdout.write(`  ${green().inverse(' Done ')}\n`);
-						callback(content, chapter_Path);
-					}
-				);
 			} catch (error) {
 				handle_error(error['message']);
 			}
-		} else if (video_lecture['asset']['download_urls'] || video_lecture['asset']['stream_urls']) {
-			process.stdout.write(`\n  ${magenta(inverse(' Lecture '))}  ${video_name}`);
-
-			if (fs.existsSync(path.join(chapter_Path, `${video_name}.mp4`))) {
-				process.stdout.write(`  ${yellow('(already downloaded)')}\n`);
-				return callback(content, chapter_Path);
-			}
-
-			const urls_location =
-				video_lecture['asset']['download_urls'] || video_lecture['asset']['stream_urls'];
-			const qualities = urls_location['Video'].map(q => parseInt(q['label'], 10));
-			const sorted_qualities = qualities.sort((el1, el2) => el1 - el2).reverse();
-
-			let quality_index = 0;
-			if (commander.quality) {
-				if (parseInt(commander.quality, 10)) {
-					if (sorted_qualities.includes(parseInt(commander.quality, 10))) {
-						quality_index = sorted_qualities.findIndex(
-							i => i === parseInt(commander.quality, 10)
-						);
-					}
-				}
-			}
-
-			const best_video_quality = urls_location['Video'].find(
-				v => v['label'] === `${sorted_qualities[quality_index]}`
-			);
-
-			const video_url = best_video_quality['file'].replace(/&/g, `^&`);
-
-			exec(
-				`${path.join(process.cwd(), ffmpeg_name)} -headers "User-Agent: ${
-					get_video_headers['User-Agent']
-				}" -y -i ${video_url} -c copy "${path.join(chapter_Path, `${video_name}.mp4`)}"`,
-				(err, stdout, stderr) => {
-					if (err) {
-						handle_error('Failed to download the video!');
-					}
-
-					process.stdout.write(`  ${green().inverse(' Done ')}\n`);
-					callback(content, chapter_Path);
-				}
-			);
 		}
 	} else {
 		content.unshift(content[0]);
@@ -444,7 +431,7 @@ const download_course_multi_request = async (
 };
 
 const download_course_contents = (course_id, auth_headers, course_path) => {
-	const course_content_url = `https://${sub_domain}.udemy.com/api-2.0/courses/${course_id}/subscriber-curriculum-items/?fields[lecture]=supplementary_assets,title,asset,object_index&fields[chapter]=title,object_index,chapter_index,sort_order&fields[asset]=title,asset_type,length,download_urls,hls_url,stream_urls,captions,body,file_size,slides,filename,external_url&page=1&locale=en_US&page_size=`;
+	const course_content_url = `https://${sub_domain}.udemy.com/api-2.0/courses/${course_id}/subscriber-curriculum-items/?fields[lecture]=supplementary_assets,title,asset,object_index&fields[chapter]=title,object_index,chapter_index,sort_order&fields[asset]=title,asset_type,length,url_set,hls_url,captions,body,file_size,filename,external_url&page=1&locale=en_US&page_size=`;
 
 	process.stdout.write(`\n\n${cyan().inverse(' Getting course information ')}`);
 	download_course_one_request(course_content_url, auth_headers, undefined, course_path);
