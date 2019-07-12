@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
 const commander = require('commander');
-const got = require('got');
-const { cyan, green, inverse, yellow, magenta, gray, red } = require('kleur');
-const { headers: original_headers, sub_domain } = require('./references.js');
+const { cyan, green, inverse, yellow, magenta, red } = require('kleur');
+const {sub_domain} = require('./references.js');
 const { get_request, handle_error } = require('./utilities.js');
+const {download_hls_video, download_mp4_video} = require('./download_video.js');
+const {download_supplementary_assets} = require('./download_assets');
 
 const create_chapter_folder = (content, course_path) => {
 	const chapter_response_index = `${content[0]['object_index']}`;
@@ -26,78 +26,6 @@ const create_chapter_folder = (content, course_path) => {
 		return chapter_path;
 	} catch (error) {
 		handle_error(error['message']);
-	}
-};
-
-// Save or download links not from Udemy
-const download_asset_external_link = (asset_name, asset_title, asset) => {
-	const asset_url = asset['external_url'];
-
-	if (asset_title.match(/\b\.\w{1,4}\b/i)) {
-		if (!fs.existsSync(asset_name)) {
-			const stream = got.stream(asset_url, {
-				headers: { 'User-Agent': original_headers['User-Agent'] }
-			});
-			stream.on('response', res => {
-				res.pipe(fs.createWriteStream(asset_name));
-
-				res.on('end', () => {
-					console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_title}  ${green(inverse(' Done '))}`);
-				});
-			}).resume();
-		}
-	} else {
-		try {
-			const data = fs.readFileSync(`${asset_name}.txt`).toString();
-			const urls_in_file = data.split('\n');
-			if (!urls_in_file.includes(asset['external_url'].trim())) {
-				fs.appendFileSync(
-					`${asset_name}.txt`,
-					`${asset['external_url'].trim()}\n`
-				);
-			}
-		} catch (error) {
-			fs.writeFileSync(`${asset_name}.txt`, `${asset['external_url'].trim()}\n`);
-		}
-	}
-};
-
-// Download files with link from Udemy
-const download_asset_file = (asset_name, asset_title, asset) => {
-	const asset_url = asset['url_set']['File'][0]['file'];
-
-	const stream = got.stream(asset_url, {
-		headers: { 'User-Agent': original_headers['User-Agent'] }
-	});
-	stream.on('response', res => {
-		res.pipe(fs.createWriteStream(asset_name));
-
-		res.on('end', () => {
-			console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_title}  ${green(inverse(' Done '))}`);
-		});
-	}).resume();
-};
-
-const download_supplementary_assets = (content, chapter_path, lecture_index) => {
-	if (content.length > 0) {
-		const asset = content[0];
-		const asset_title = `${lecture_index} ${asset['title']}`.replace(/[/\\?%*:|"<>]/g, '_');
-		const asset_name = path.join(chapter_path, asset_title);
-
-		if (asset['asset_type'] === 'ExternalLink') {
-			download_asset_external_link(asset_name, asset_title, asset);
-		}
-
-		if (asset['asset_type'] === 'File') {
-			if (fs.existsSync(asset_name)) {
-				console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_title}  ${yellow('(already downloaded)')}`);
-			} else {
-				download_asset_file(asset_name, asset_title, asset);
-			}
-		}
-
-		content.shift();
-		download_supplementary_assets(content, chapter_path, lecture_index);
 	}
 };
 
@@ -163,89 +91,6 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 	} catch (error) {
 		handle_error(error['message']);
 	}
-};
-
-const download_hls_video = async (url, video_name, chapter_path) => {
-	try {
-		const response = await get_request(
-			url,
-			{'User-Agent': original_headers['User-Agent']}
-		);
-
-		const video_resolutions = response.body
-			.match(/(?:hls_)(\d{3,4})/g)
-			.map(r => r.slice(4));
-
-		let video_quality_index = 0;
-		let quality_position = ' ';
-		if (commander.quality) {
-			video_quality_index = video_resolutions.findIndex(
-				r => r === `${commander.quality}`
-			);
-			if (video_quality_index !== -1) {
-				// -map p:1
-				// choose second resolution
-				quality_position = ` -map p:${video_quality_index} `;
-			}
-		}
-
-		await save_video(url, quality_position, video_name, chapter_path);
-	} catch (error) {
-		handle_error(error['message']);
-	}
-};
-
-const download_mp4_video = async (urls_location, video_name, chapter_path) => {
-	try {
-		const qualities = urls_location.map(q => parseInt(q['label'], 10));
-		const sorted_qualities = qualities.sort((el1, el2) => el1 - el2).reverse();
-
-		let quality_index = 0;
-		if (commander.quality) {
-			if (parseInt(commander.quality, 10)) {
-				if (sorted_qualities.includes(parseInt(commander.quality, 10))) {
-					quality_index = sorted_qualities.findIndex(
-						i => i === parseInt(commander.quality, 10)
-					);
-				}
-			}
-		}
-
-		const best_video_quality = urls_location.find(
-			v => v['label'] === `${sorted_qualities[quality_index]}`
-		);
-
-		const video_url = best_video_quality['file'].replace(/&/g, '^&');
-
-		await save_video(video_url, undefined, video_name, chapter_path);
-	} catch (error) {
-		handle_error(error['message']);
-	}
-};
-
-const save_video = (url, quality_position, video_name, chapter_path) => {
-	const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
-
-	const download_command = quality_position ?
-		`-y -i "${url}"${quality_position}-acodec copy -bsf:a aac_adtstoasc -vcodec` :
-		`-headers "User-Agent: ${original_headers['User-Agent']}" -y -i ${url} -c`;
-
-	return new Promise((resolve, reject) => {
-		exec(
-			`${path.join(process.cwd(), ffmpeg_name)} ${download_command} copy "${path.join(
-				chapter_path,
-				`${video_name}.mp4`
-			)}"`,
-			err => {
-				if (err) {
-					reject(new Error('Failed to download the video!'));
-				}
-
-				console.log(`  ${green().inverse(' Done ')}`);
-				resolve('Done');
-			}
-		);
-	});
 };
 
 const download_lecture_video = async (content, callback, course_path, chapter_Path) => {
