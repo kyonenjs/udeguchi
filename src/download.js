@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const commander = require('commander');
-const { cyan, green, inverse, yellow, magenta, red } = require('kleur');
+const { cyan, green, yellow, magenta, red } = require('kleur');
 const {sub_domain} = require('./references.js');
 const { get_request, handle_error } = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
@@ -14,7 +14,7 @@ const create_chapter_folder = (content, course_path) => {
 		'_'
 	);
 
-	console.log(`\n${green(inverse(' Chapter '))}  ${chapter_name}`);
+	console.log(`\n${green().inverse(' Chapter ')}  ${chapter_name}`);
 
 	const chapter_path = path.join(course_path, chapter_name);
 
@@ -43,7 +43,7 @@ const download_lecture_article = (content, chapter_path) => {
 
 	fs.writeFileSync(article_path, new_article_body);
 
-	console.log(`\n  ${magenta(inverse(' Lecture '))}  ${article_name}  ${green().inverse(' Done ')}`);
+	console.log(`\n  ${magenta().inverse(' Lecture ')}  ${article_name}  ${green().inverse(' Done ')}`);
 
 	if (content[0]['supplementary_assets'].length > 0) {
 		download_supplementary_assets(
@@ -93,9 +93,9 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 	}
 };
 
-const download_lecture_video = async (content, callback, course_path, chapter_Path) => {
+const download_lecture_video = async (content, course_path, chapter_path) => {
 	if (content[0]['_class'] === 'chapter') {
-		chapter_Path = create_chapter_folder(content, course_path);
+		chapter_path = create_chapter_folder(content, course_path);
 		content.shift();
 		if (content.length === 0) {
 			return;
@@ -103,7 +103,7 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 	}
 
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Article') {
-		download_lecture_article(content, chapter_Path);
+		download_lecture_article(content, chapter_path);
 		content.shift();
 		if (content.length === 0) {
 			return;
@@ -121,44 +121,44 @@ const download_lecture_video = async (content, callback, course_path, chapter_Pa
 
 		if (!commander.skipSub) {
 			if (video_lecture['asset']['captions'].length !== 0) {
-				download_subtitles(video_lecture['asset']['captions'], video_name, chapter_Path);
+				download_subtitles(video_lecture['asset']['captions'], video_name, chapter_path);
 			}
 		}
 
 		if (video_lecture['supplementary_assets'].length > 0) {
 			download_supplementary_assets(
 				video_lecture['supplementary_assets'],
-				chapter_Path,
+				chapter_path,
 				lecture_index.padStart(3, '0')
 			);
 		}
 
 		if (video_lecture['asset']['url_set']) {
 			try {
-				process.stdout.write(`\n  ${magenta(inverse(' Lecture '))}  ${video_name}`);
+				process.stdout.write(`\n  ${magenta().inverse(' Lecture ')}  ${video_name}`);
 
-				if (fs.existsSync(path.join(chapter_Path, `${video_name}.mp4`))) {
+				if (fs.existsSync(path.join(chapter_path, `${video_name}.mp4`))) {
 					console.log(`  ${yellow('(already downloaded)')}`);
-					return callback(content, chapter_Path);
+					return await download_lecture_video(content, course_path, chapter_path);
 				}
 
 				const urls_location = video_lecture['asset']['url_set']['Video'];
 				const hls_link = video_lecture['asset']['hls_url'];
 
 				if (hls_link) {
-					await download_hls_video(`https${hls_link.slice(5)}`, video_name, chapter_Path);
+					await download_hls_video(`https${hls_link.slice(5)}`, video_name, chapter_path);
 				} else {
-					await download_mp4_video(urls_location, video_name, chapter_Path);
+					await download_mp4_video(urls_location, video_name, chapter_path);
 				}
 
-				callback(content, chapter_Path);
+				content.shift();
+				await download_lecture_video(content, course_path, chapter_path);
 			} catch (error) {
 				handle_error(error['message']);
 			}
 		}
 	} else {
-		content.unshift(content[0]);
-		callback(content, chapter_Path);
+		await download_lecture_video(content, course_path, chapter_path);
 	}
 };
 
@@ -201,32 +201,18 @@ const filter_course_data = (data, start, end) => {
 	return lectures;
 };
 
-const download_course_one_request = async (course_content_url, auth_headers, content, course_path, chapterPath) => {
+const download_course_one_request = async (course_content_url, auth_headers, course_path) => {
 	if (course_content_url) {
 		try {
 			const response = await get_request(`${course_content_url}10000`, auth_headers);
 
-			process.stdout.write(`  ${green(inverse(' Done '))}\n`);
+			process.stdout.write(`  ${green().inverse(' Done ')}\n`);
 
 			const data = JSON.parse(response.body).results;
 
 			const lectures = filter_course_data(data, commander.chapterStart, commander.chapterEnd);
 
-			download_lecture_video(
-				lectures,
-				(course_contents, chapter_Path) => {
-					course_contents.shift();
-					download_course_one_request(
-						undefined,
-						undefined,
-						course_contents,
-						course_path,
-						chapter_Path
-					);
-				},
-				course_path,
-				chapterPath
-			);
+			await download_lecture_video(lectures, course_path);
 		} catch (error) {
 			if (error['statusCode'] === 502) {
 				return download_course_multi_request(course_content_url, auth_headers, course_path);
@@ -235,26 +221,6 @@ const download_course_one_request = async (course_content_url, auth_headers, con
 			}
 
 			handle_error(error['message']);
-		}
-	}
-
-	if (content) {
-		if (content.length !== 0) {
-			download_lecture_video(
-				content,
-				(course_contents, chapter_Path) => {
-					course_contents.shift();
-					download_course_one_request(
-						undefined,
-						undefined,
-						course_contents,
-						course_path,
-						chapter_Path
-					);
-				},
-				course_path,
-				chapterPath
-			);
 		}
 	}
 };
@@ -286,11 +252,11 @@ const download_course_multi_request = async (
 	}
 };
 
-const download_course_contents = (course_id, auth_headers, course_path) => {
+const download_course_contents = async (course_id, auth_headers, course_path) => {
 	const course_content_url = `https://${sub_domain}.udemy.com/api-2.0/courses/${course_id}/subscriber-curriculum-items/?fields[lecture]=supplementary_assets,title,asset,object_index&fields[chapter]=title,object_index,chapter_index,sort_order&fields[asset]=title,asset_type,length,url_set,hls_url,captions,body,file_size,filename,external_url&page=1&locale=en_US&page_size=`;
 
 	process.stdout.write(`\n\n${cyan().inverse(' Getting course information ')}`);
-	download_course_one_request(course_content_url, auth_headers, undefined, course_path);
+	await download_course_one_request(course_content_url, auth_headers, course_path);
 };
 
 module.exports = {
