@@ -7,7 +7,7 @@ const { yellow, green, inverse } = require('kleur');
 commander
 	.name('app.js')
 	.usage('<url> [options]')
-	.version('1.0.0', '-v, --version')
+	.version(require('./package.json').version, '-v, --version')
 	.option('-u, --username <username>', 'Username')
 	.option('-p, --password <password>', 'Password')
 	.option('-k, --cookie <cookie>', 'Cookie File Name')
