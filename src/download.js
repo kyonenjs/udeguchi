@@ -206,7 +206,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 		try {
 			const response = await get_request(`${course_content_url}10000`, auth_headers);
 
-			process.stdout.write(`  ${green().inverse(' Done ')}\n`);
+			console.log(`  ${green().inverse(' Done ')}`);
 
 			const data = JSON.parse(response.body).results;
 
@@ -215,7 +215,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 			await download_lecture_video(lectures, course_path);
 		} catch (error) {
 			if (error['statusCode'] === 502) {
-				return download_course_multi_request(course_content_url, auth_headers, course_path);
+				return await download_course_multi_requests(`${course_content_url}200`, auth_headers, course_path);
 			} else if (error['code'] === 'ENOTFOUND') {
 				handle_error('Unable to connect to Udemy server');
 			}
@@ -225,28 +225,19 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 	}
 };
 
-const download_course_multi_request = async (
-	course_content_url,
-	auth_headers,
-	course_path,
-	next_url,
-	previous_data = []
-) => {
-	if (!course_content_url) {
-		course_content_url = next_url;
-	} else if (!course_content_url && !next_url) {
-		previous_data.unshift(previous_data[0]);
-		return download_course_one_request(undefined, undefined, course_path);
-	} else {
-		course_content_url += '200';
-	}
-
+const download_course_multi_requests = async (course_content_url, auth_headers, course_path, previous_data = []) => {
 	try {
-		const response = await get_request(`${course_content_url}`, auth_headers);
+		if (!course_content_url) {
+			console.log(`  ${green().inverse(' Done ')}`);
+
+			return await download_lecture_video(previous_data, course_path);
+		}
+
+		const response = await get_request(course_content_url, auth_headers);
 
 		const data = JSON.parse(response.body);
 		previous_data = [...previous_data, ...data['results']];
-		download_course_multi_request(null, auth_headers, course_path, data['next'], previous_data);
+		await download_course_multi_requests(data['next'], auth_headers, course_path, previous_data);
 	} catch (error) {
 		handle_error(error['message']);
 	}
