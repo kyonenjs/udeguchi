@@ -81,6 +81,21 @@ Command above will
 `- download highest video quality`
  
 `- download all subtitles`
+> &nbsp;  
+> &nbsp;  
+### `Use with options`
+```
+$ node app.js https://www.udemy.com/course-name/ -q 480 --lang en --chapter-end 5 -o ../udemy_courses
+```
+Command above will  
+
+`- download video with quality 480p`  
+
+`- only download English subtitles`  
+
+`- download until chapter 5 (not include chapter 5)`  
+
+`- download course to a folder name 'udemy_courses' outside udeguchi folder`
 
 ## Login with cookie ? How ?
 ```
