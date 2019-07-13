@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const commander = require('commander');
-const { cyan, green, yellow, magenta, red } = require('kleur');
+const {cyan, green, yellow, magenta, red} = require('kleur');
 const {sub_domain} = require('./references.js');
-const { get_request, handle_error } = require('./utilities.js');
+const {get_request, handle_error} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 
@@ -164,17 +164,13 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 
 const filter_course_data = (data, start, end) => {
 	const lectures = data.filter(content => {
-		try {
-			return (
-				content['_class'] === 'chapter' ||
-				(content['_class'] === 'lecture' &&
-					content['asset']['asset_type'] === 'Video') ||
-				(content['_class'] === 'lecture' &&
-					content['asset']['asset_type'] === 'Article')
-			);
-		} catch (error) {
-			handle_error(error['message']);
-		}
+		return (
+			content['_class'] === 'chapter' ||
+			(content['_class'] === 'lecture' &&
+				content['asset']['asset_type'] === 'Video') ||
+			(content['_class'] === 'lecture' &&
+				content['asset']['asset_type'] === 'Article')
+		);
 	});
 
 	const chapters = data.filter(c => c['_class'] === 'chapter');
@@ -189,7 +185,9 @@ const filter_course_data = (data, start, end) => {
 		}
 
 		return lectures.splice(start_index);
-	} else if (start && parseInt(start, 10) > chapters.length) {
+	}
+
+	if (start && parseInt(start, 10) > chapters.length) {
 		handle_error(`Course only have ${yellow(chapters.length)} chapters but you start at chapter ${red(start)}`);
 	}
 
@@ -215,7 +213,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 			await download_lecture_video(lectures, course_path);
 		} catch (error) {
 			if (error['statusCode'] === 502) {
-				return await download_course_multi_requests(`${course_content_url}200`, auth_headers, course_path);
+				await download_course_multi_requests(`${course_content_url}200`, auth_headers, course_path);
 			} else if (error['code'] === 'ENOTFOUND') {
 				handle_error('Unable to connect to Udemy server');
 			}
@@ -230,7 +228,7 @@ const download_course_multi_requests = async (course_content_url, auth_headers, 
 		if (!course_content_url) {
 			console.log(`  ${green().inverse(' Done ')}`);
 
-			return await download_lecture_video(previous_data, course_path);
+			await download_lecture_video(previous_data, course_path);
 		}
 
 		const response = await get_request(course_content_url, auth_headers);
