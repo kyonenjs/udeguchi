@@ -139,6 +139,8 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 
 				if (fs.existsSync(path.join(chapter_path, `${video_name}.mp4`))) {
 					console.log(`  ${yellow('(already downloaded)')}`);
+
+					content.shift();
 					return await download_lecture_video(content, course_path, chapter_path);
 				}
 
