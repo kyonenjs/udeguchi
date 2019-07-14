@@ -1,13 +1,13 @@
-const { exec } = require('child_process');
+const {exec} = require('child_process');
 const path = require('path');
 const commander = require('commander');
-const { green } = require('kleur');
-const { get_request, handle_error } = require('./utilities.js');
-const { headers: original_headers } = require('./references.js');
+const {green} = require('kleur');
+const {get_request, handle_error} = require('./utilities.js');
+const {headers: original_headers} = require('./references.js');
 
 const download_hls_video = async (url, video_name, chapter_path) => {
 	try {
-		const response = await get_request(url, { 'User-Agent': original_headers['User-Agent'] });
+		const response = await get_request(url, {'User-Agent': original_headers['User-Agent']});
 
 		const video_resolutions = response.body.match(/(?:hls_)(\d{3,4})/g).map(r => r.slice(4));
 
@@ -24,6 +24,10 @@ const download_hls_video = async (url, video_name, chapter_path) => {
 
 		await save_video(url, quality_position, video_name, chapter_path);
 	} catch (error) {
+		if (error['statusCode'] === 403) {
+			throw new Error('403');
+		}
+
 		handle_error(error['message']);
 	}
 };

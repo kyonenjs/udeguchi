@@ -94,6 +94,10 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 };
 
 const download_lecture_video = async (content, course_path, chapter_path) => {
+	if (content.length === 0) {
+		process.exit();
+	}
+
 	if (content[0]['_class'] === 'chapter') {
 		chapter_path = create_chapter_folder(content, course_path);
 		content.shift();
@@ -156,7 +160,16 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 				content.shift();
 				await download_lecture_video(content, course_path, chapter_path);
 			} catch (error) {
-				handle_error(error['message']);
+				if (error['message'] === '403') {
+					console.log(`  ${yellow('(fail to connect, retrying)')}`);
+
+					throw new Error(JSON.stringify({
+						lecture_id: video_lecture['id'],
+						chapter_path
+					}));
+				}
+
+				throw new Error(error['message']);
 			}
 		}
 	} else {
@@ -201,16 +214,20 @@ const filter_course_data = (data, start, end) => {
 	return lectures;
 };
 
+const download_course_info = async (course_content_url, auth_headers) => {
+	const response = await get_request(course_content_url, auth_headers);
+
+	const data = JSON.parse(response.body).results;
+
+	return filter_course_data(data, commander.chapterStart, commander.chapterEnd);
+};
+
 const download_course_one_request = async (course_content_url, auth_headers, course_path) => {
 	if (course_content_url) {
 		try {
-			const response = await get_request(`${course_content_url}10000`, auth_headers);
+			const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
 
 			console.log(`  ${green().inverse(' Done ')}`);
-
-			const data = JSON.parse(response.body).results;
-
-			const lectures = filter_course_data(data, commander.chapterStart, commander.chapterEnd);
 
 			await download_lecture_video(lectures, course_path);
 		} catch (error) {
@@ -218,6 +235,12 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 				await download_course_multi_requests(`${course_content_url}200`, auth_headers, course_path);
 			} else if (error['code'] === 'ENOTFOUND') {
 				handle_error('Unable to connect to Udemy server');
+			} else if (JSON.parse(error['message'])['lecture_id']) {
+				const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
+
+				const start_again_lecture = lectures.findIndex(content => content['id'] === JSON.parse(error['message'])['lecture_id']);
+
+				await download_lecture_video(lectures.slice(start_again_lecture), course_path, JSON.parse(error['message'])['chapter_path']);
 			}
 
 			handle_error(error['message']);
