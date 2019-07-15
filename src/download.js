@@ -235,12 +235,14 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 				await download_course_multi_requests(`${course_content_url}200`, auth_headers, course_path);
 			} else if (error['code'] === 'ENOTFOUND') {
 				handle_error('Unable to connect to Udemy server');
-			} else if (JSON.parse(error['message'])['lecture_id']) {
+			} else if (error['message'].includes('lecture_id')) {
+				const {lecture_id, chapter_path} = JSON.parse(error['message']);
+
 				const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
 
-				const start_again_lecture = lectures.findIndex(content => content['id'] === JSON.parse(error['message'])['lecture_id']);
+				const start_again_lecture = lectures.findIndex(content => content['id'] === lecture_id);
 
-				await download_lecture_video(lectures.slice(start_again_lecture), course_path, JSON.parse(error['message'])['chapter_path']);
+				await download_lecture_video(lectures.slice(start_again_lecture), course_path, chapter_path);
 			}
 
 			handle_error(error['message']);
