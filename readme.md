@@ -7,6 +7,7 @@
 - Support download draft courses
 - Support download with business account
 - Support download selected chapters
+- Support download select lecture
 - Login with cookie
 - Download subtitle with the language you want
 - Choose video quality to download
@@ -119,10 +120,15 @@ $ node app.js -k cookie.txt https://www.udemy.com/course-name/
 |`-q` _or_ `--quality` |Download video with this quality if available|
 |`-o` _or_ `--output`  |Download course to this location             |
 |`--chapter-start`     |Start download at this chapter               |
-|`--chapter-end`       |Stop download at this chapter (not include)  |  
+|`--chapter-end`       |Stop download at this chapter (not include)  |
+|`--lecture`           |Download this lecture only                   |
 
 ### `That's good, but how to use it ?`
-* `-k` _or_ `--cookie`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Login with cookie
+
+|Option||
+|:---:|---|
+|`-k` _or_ `--cookie`|Login with cookie|
+
 ```
 $ node app.js -k cookie.txt https://www.udemy.com/course-name/
 
@@ -132,8 +138,12 @@ $ node app.js --cookie cookie.txt https://www.udemy.com/course-name/
 ```
 > &nbsp;  
 > &nbsp;  
-  * `-u` _or_ `--username`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Username
-  * `-p` _or_ `--password`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Password
+
+|Option||
+|:---:|---|
+|`-u` _or_ `--username`|Username|
+|`-p` _or_ `--password`|Password|
+
 ```
 $ node app.js -u udeguchi@github.com -p udeguchi https://www.udemy.com/course-name/
 
@@ -143,14 +153,20 @@ $ node app.js --username udeguchi@github.com --password udeguchi https://www.ude
 ```
 > &nbsp;  
 > &nbsp;  
-  * `--skip-sub`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;​Skip download subtitles
+
+|Option||
+|:---:|---|
+|`--skip-sub`|​Skip download subtitles|
+
 ```
 $ node app.js --skip-sub https://www.udemy.com/course-name/
 ```
 > &nbsp;  
 > &nbsp;  
-  * `--lang <language>`&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Only download subtitles with this language
 
+|Option||
+|:---:|---|
+|`--lang <language>`|Only download subtitles with this language|
 <code>** Use short form of language listed here : https://www.w3schools.com/tags/ref_language_codes.asp</code>  
 > If link is not working for some reason, please Google: **ISO 639-1 Language Codes**
 ```
@@ -158,8 +174,11 @@ $ node app.js --lang en https://www.udemy.com/course-name/
 ```
 > &nbsp;  
 > &nbsp;  
-  * `-q` _or_ `--quality`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Download video with this quality if available
-> **Options:** `144` `360` `480` `720` `1080`  
+
+|Option||
+|:---:|---|
+|`-q` _or_ `--quality`|Download video with this quality if available|
+> **Available qualities:** `144` `360` `480` `720` `1080`  
 ```
 $ node app.js -q 1080 https://www.udemy.com/course-name/
 
@@ -169,7 +188,11 @@ $ node app.js --quality 1080 https://www.udemy.com/course-name/
 ```
 > &nbsp;  
 > &nbsp;  
-  * `-o` _or_ `--output`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Download course to this location
+
+|Option||
+|:---:|---|
+|`-o` _or_ `--output`|Download course to this location|
+
 ```
 <Full path>
 $ node app.js -o C:\Users\udeguchi\Desktop https://www.udemy.com/course-name/
@@ -183,8 +206,12 @@ $ node app.js --output ..\newLocation https://www.udemy.com/course-name/
 ```
 > &nbsp;  
 > &nbsp;  
-  * `--chapter-start <chapterNumber>`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Start download at this chapter  
-  * `--chapter-end <chapterNumber>`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;›&nbsp;&nbsp;Stop download at this chapter (not include)
+
+|Option||
+|:---:|---|
+|`--chapter-start <chapterNumber>`|Start download at this chapter|
+|`--chapter-end <chapterNumber>`|Stop download at this chapter (not include)|
+
 ```
 <Download from chapter 3 to end>
 $ node app.js --chapter-start 3 https://www.udemy.com/course-name/
@@ -194,6 +221,16 @@ $ node app.js --chapter-start 2 --chapter-end 5 https://www.udemy.com/course-nam
 
 <Download from begin to chapter 7 (not include chapter 7)>
 $ node app.js --chapter-end 7 https://www.udemy.com/course-name/
+```
+> &nbsp;  
+> &nbsp;  
+
+|Option||
+|:---:|---|
+|`--lecture <lectureNumber>`|Download this lecture only|
+
+```
+$ node app.js --lecture 12 https://www.udemy.com/course-name/
 ```
 
 ## License

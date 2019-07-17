@@ -177,6 +177,18 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 	}
 };
 
+const filter_lecture = (data) => {
+	const lecture_index = data.findIndex(l => l['_class'] === 'lecture' && l['object_index'] === parseInt(commander.lecture, 10));
+
+	if (lecture_index !== -1) {
+		const chapter_with_lecture = data.slice(0, lecture_index).reverse().find(c => c['_class'] === 'chapter');
+
+		return [chapter_with_lecture, data[lecture_index]];
+	}
+
+	handle_error('Unable to find the lecture');
+};
+
 const filter_course_data = (data, start, end) => {
 	const lectures = data.filter(content => {
 		return (
@@ -187,6 +199,10 @@ const filter_course_data = (data, start, end) => {
 				content['asset']['asset_type'] === 'Article')
 		);
 	});
+
+	if (commander.lecture) {
+		return filter_lecture(lectures);
+	}
 
 	const chapters = data.filter(c => c['_class'] === 'chapter');
 

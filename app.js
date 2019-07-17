@@ -17,6 +17,7 @@ commander
 	.option('-o, --output <location>', 'Download files to this location')
 	.option('--chapter-start <chapterNumber>', 'Start download at this chapter')
 	.option('--chapter-end <chapterNumber>', 'Stop download at this chapter (not include)')
+	.option('--lecture <lectureNumber>', 'Download this lecture only')
 	.parse(process.argv);
 
 const { handle_error, extract_course_name } = require('./src/utilities.js');
@@ -31,6 +32,8 @@ if (commander.chapterStart && !(parseInt(commander.chapterStart, 10) > 0)) {
 if (!commander.chapterStart && commander.chapterEnd && !(parseInt(commander.chapterEnd, 10) > 1)) {
 	handle_error('--chapter-end should be greater than 1');
 }
+
+commander.lecture && !(parseInt(commander.lecture, 10) > 0) && handle_error('Invalid lecture number');
 
 let ffmpeg_name = '';
 if (process.platform === 'win32') {
