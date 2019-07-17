@@ -167,6 +167,7 @@ $ node app.js --skip-sub https://www.udemy.com/course-name/
 |Option||
 |:---:|---|
 |`--lang <language>`|Only download subtitles with this language|
+
 <code>** Use short form of language listed here : https://www.w3schools.com/tags/ref_language_codes.asp</code>  
 > If link is not working for some reason, please Google: **ISO 639-1 Language Codes**
 ```
@@ -216,8 +217,12 @@ $ node app.js --output ..\newLocation https://www.udemy.com/course-name/
 <Download from chapter 3 to end>
 $ node app.js --chapter-start 3 https://www.udemy.com/course-name/
 
+or 
+
 <Download from chapter 2 to chapter 5 (not include chapter 5)>
 $ node app.js --chapter-start 2 --chapter-end 5 https://www.udemy.com/course-name/
+
+or 
 
 <Download from begin to chapter 7 (not include chapter 7)>
 $ node app.js --chapter-end 7 https://www.udemy.com/course-name/
