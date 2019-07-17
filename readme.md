@@ -7,7 +7,7 @@
 - Support download draft courses
 - Support download with business account
 - Support download selected chapters
-- Support download select lecture
+- Support download selected lecture
 - Login with cookie
 - Download subtitle with the language you want
 - Choose video quality to download
