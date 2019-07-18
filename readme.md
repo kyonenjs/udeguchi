@@ -31,11 +31,12 @@ You can download and install at : https://nodejs.org/en/
 ### &#x2198; ffmpeg
 
 ### `Link download`
-- <code>[Windows 64-bit](https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-4.1.3-win64-static.zip)
+
+- [Windows 64-bit](https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-4.1.3-win64-static.zip)
 - [Windows 32-bit](https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-4.1.3-win32-static.zip)
 - [macOS](https://evermeet.cx/ffmpeg/ffmpeg-4.1.3.dmg)
 - [Linux 64-bit](https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz)
-- [Linux 32-bit](https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-i686-static.tar.xz)</code>
+- [Linux 32-bit](https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-i686-static.tar.xz)
 
 ```
 But i don't know my system is 64-bit or 32-bit ?
