@@ -32,9 +32,9 @@ You can download and install at : https://nodejs.org/en/
 
 ### `Link download`
 
-- [Windows 64-bit](https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-4.1.3-win64-static.zip)
-- [Windows 32-bit](https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-4.1.3-win32-static.zip)
-- [macOS](https://evermeet.cx/ffmpeg/ffmpeg-4.1.3.dmg)
+- [Windows 64-bit](https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-4.1.4-win64-static.zip)
+- [Windows 32-bit](https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-4.1.4-win32-static.zip)
+- [macOS](https://evermeet.cx/ffmpeg/ffmpeg-4.1.4.zip)
 - [Linux 64-bit](https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz)
 - [Linux 32-bit](https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-i686-static.tar.xz)
 
@@ -55,7 +55,7 @@ and copy file name 'ffmpeg.exe' into udeguchi folder.
 
 > **macOS**
 ```
-Open '.dmg' file just downloaded above, move file name 'ffmpeg' into udeguchi folder.
+Unzip file just downloaded above and move file name 'ffmpeg' into udeguchi folder.
 ```
 
 > **Linux**
