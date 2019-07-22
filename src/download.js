@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 const commander = require('commander');
 const {cyan, green, yellow, magenta, red} = require('kleur');
 const {sub_domain} = require('./references.js');
@@ -139,14 +140,36 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 
 		if (video_lecture['asset']['url_set']) {
 			try {
-				process.stdout.write(`\n  ${magenta().inverse(' Lecture ')}  ${video_name}`);
-
 				if (fs.existsSync(path.join(chapter_path, `${video_name}.mp4`))) {
-					console.log(`  ${yellow('(already downloaded)')}`);
+					console.log(`\n  ${magenta().inverse(' Lecture ')}  ${video_name}  ${yellow('(already downloaded)')}`);
 
 					content.shift();
 					return await download_lecture_video(content, course_path, chapter_path);
 				}
+
+				console.log();
+
+				const spinner = '|/-\\';
+
+				const check_spinner = [0];
+
+				const render = (i = 1) => {
+					if (check_spinner[0]) {
+						return;
+					}
+
+					process.stderr.write('\r');
+					readline.clearLine(process.stderr, 1);
+					readline.cursorTo(process.stderr, 0);
+					process.stderr.write(`${yellow(spinner[i])} ${magenta().inverse(' Lecture ')}  ${video_name}`);
+
+					setTimeout(() => {
+						i++;
+						render(i % spinner.length);
+					}, 100);
+				};
+
+				render();
 
 				const urls_location = video_lecture['asset']['url_set']['Video'];
 				const hls_link = video_lecture['asset']['hls_url'];
@@ -156,6 +179,8 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 				} else {
 					await download_mp4_video(urls_location, video_name, chapter_path);
 				}
+
+				check_spinner[0] = 1;
 
 				content.shift();
 				await download_lecture_video(content, course_path, chapter_path);
