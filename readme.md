@@ -113,18 +113,18 @@ $ node app.js -k cookie.txt https://www.udemy.com/course-name/
 
 ## Options
 ### `What options we have here`
-|Options               |                                             |
-|---                   |---                                          |
-|`-k` _or_ `--cookie`  |Login with cookie                            |
-|`-u` _or_ `--username`|Username                                     |
-|`-p` _or_ `--password`|Password                                     |
-|`--lang`              |Only download subtitles with this language   |
-|`--skip-sub`          |Skip download subtitles                      |
-|`-q` _or_ `--quality` |Download video with this quality if available|
-|`-o` _or_ `--output`  |Download course to this location             |
-|`--chapter-start`     |Start download at this chapter               |
-|`--chapter-end`       |Stop download at this chapter (not include)  |
-|`--lecture`           |Download this lecture only                   |
+|Options               |                                                   |
+|---                   |---                                                |
+|`-k` _or_ `--cookie`  |Login with cookie                                  |
+|`-u` _or_ `--username`|Login with username (required `--password` option) |
+|`-p` _or_ `--password`|Login with password (required `--username` option) |
+|`--lang`              |Only download subtitles with this language         |
+|`--skip-sub`          |Skip download subtitles                            |
+|`-q` _or_ `--quality` |Download video with this quality if available      |
+|`-o` _or_ `--output`  |Download course to this location                   |
+|`--chapter-start`     |Start download at this chapter                     |
+|`--chapter-end`       |Stop download at this chapter (not include)        |
+|`--lecture`           |Download this lecture only                         |
 
 ### `That's good, but how to use it ?`
 
@@ -144,8 +144,8 @@ $ node app.js --cookie cookie.txt https://www.udemy.com/course-name/
 
 |Option||
 |:---:|---|
-|`-u` _or_ `--username`|Username|
-|`-p` _or_ `--password`|Password|
+|`-u` _or_ `--username`|Login with username (required `--password` option) |
+|`-p` _or_ `--password`|Login with password (required `--username` option) |
 
 ```
 $ node app.js -u udeguchi@github.com -p udeguchi https://www.udemy.com/course-name/
