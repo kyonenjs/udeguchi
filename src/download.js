@@ -139,6 +139,8 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		}
 
 		if (video_lecture['asset']['url_set']) {
+			const check_spinner = [0];
+
 			try {
 				if (fs.existsSync(path.join(chapter_path, `${video_name}.mp4`))) {
 					console.log(`\n  ${magenta().inverse(' Lecture ')}  ${video_name}  ${yellow('(already downloaded)')}`);
@@ -150,8 +152,6 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 				console.log();
 
 				const spinner = '|/-\\';
-
-				const check_spinner = [0];
 
 				const render = (i = 1) => {
 					if (check_spinner[0]) {
@@ -185,6 +185,8 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 				content.shift();
 				await download_lecture_video(content, course_path, chapter_path);
 			} catch (error) {
+				check_spinner[0] = 1;
+
 				if (error['message'] === '403') {
 					console.log(`  ${yellow('(fail to connect, retrying)')}`);
 
