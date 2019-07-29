@@ -1,3 +1,10 @@
+try {
+	require.resolve('commander');
+} catch (error) {
+	console.log('\nnpm dependencies not found\nPlease follow steps here: https://github.com/kyonenjs/udeguchi#require');
+	process.exit();
+}
+
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
