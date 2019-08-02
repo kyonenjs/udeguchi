@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const commander = require('commander');
-const { yellow, red, inverse } = require('kleur');
-const { search_url, draft_course_search_url, sub_domain } = require('./references.js');
-const { handle_error, get_request, extract_course_name } = require('./utilities.js');
-const { download_course_contents } = require('./download.js');
-const { login_with_username_password } = require('./login_methods.js');
+const {yellow, red, inverse} = require('kleur');
+const {search_url, draft_course_search_url, sub_domain} = require('./references.js');
+const {handle_error, get_request, extract_course_name} = require('./utilities.js');
+const {download_course_contents} = require('./download.js');
+const {login_with_username_password} = require('./login_methods.js');
 
 const create_course_folder = (course_name, destination = process.cwd()) => {
 	try {
@@ -79,7 +79,7 @@ const find_course = async (headers, course_url_name) => {
 		download_course_contents(course_found['id'], headers, course_path);
 	} catch (error) {
 		if (error['statusCode'] === 403) {
-			console.log(`${red(inverse('Fail'))}\n\n`);
+			console.log(`${red(inverse(' Fail '))}\n\n`);
 
 			// If user provide username and password
 			// maybe 403 error because your cached cookie is not valid anymore
@@ -105,13 +105,9 @@ const find_course = async (headers, course_url_name) => {
 };
 
 const find_owned_course = (course_name, auth_headers) => {
-	const { is_draft, course_name_in_url } = course_name;
+	const {is_draft, course_name_in_url} = course_name;
 
-	if (is_draft === true) {
-		find_draft_course(auth_headers, course_name_in_url);
-	} else {
-		find_course(auth_headers, course_name_in_url);
-	}
+	is_draft ? find_draft_course(auth_headers, course_name_in_url) : find_course(auth_headers, course_name_in_url);
 };
 
 module.exports = {
