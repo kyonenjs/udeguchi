@@ -41,6 +41,13 @@ const find_draft_course = async (headers, course_id) => {
 		download_course_contents(course_id, headers, course_path);
 	} catch (error) {
 		if (error['statusCode'] === 403) {
+			console.log(`  ${red(inverse(' Fail '))}\n\n`);
+			if (commander.username && commander.password) {
+				const auth_headers = await login_with_username_password(commander.username, commander.password);
+
+				return find_owned_course(extract_course_name(commander.args[0]), auth_headers);
+			}
+
 			handle_error('You do not owned this course');
 		} else if (error['code'] === 'ENOTFOUND') {
 			handle_error('Unable to connect to Udemy server');
