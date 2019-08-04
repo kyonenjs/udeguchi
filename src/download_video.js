@@ -1,3 +1,4 @@
+const fs = require('fs');
 const {exec} = require('child_process');
 const path = require('path');
 const commander = require('commander');
@@ -67,12 +68,14 @@ const save_video = (url, quality_position, video_name, chapter_path) => {
 		exec(
 			`${path.join(process.cwd(), ffmpeg_name)} ${download_command} copy "${path.join(
 				chapter_path,
-				`${video_name}.mp4`
+				'downloading.mp4'
 			)}"`,
 			err => {
 				if (err) {
 					reject(new Error('Failed to download the video!'));
 				}
+
+				fs.renameSync(path.join(chapter_path, 'downloading.mp4'), path.join(chapter_path, `${video_name}.mp4`));
 
 				console.log(`  ${green().inverse(' Done ')}`);
 				resolve('Done');
