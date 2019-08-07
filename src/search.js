@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 const commander = require('commander');
-const {yellow, red, inverse} = require('kleur');
+const {yellow, red, cyan, green, inverse} = require('kleur');
 const {search_url, draft_course_search_url, sub_domain} = require('./references.js');
 const {handle_error, get_request, extract_course_name} = require('./utilities.js');
 const {download_course_contents} = require('./download.js');
@@ -68,6 +69,26 @@ const find_archived_course = async (headers, course_url_name) => {
 	return check_if_course_owned(response.body, course_url_name);
 };
 
+const find_course_multi_requests = async (subscribed_url, headers, course_url_name) => {
+	try {
+		if (!subscribed_url) {
+			return;
+		}
+
+		const response = await get_request(subscribed_url, headers);
+
+		if (check_if_course_owned(response.body, course_url_name)) {
+			return check_if_course_owned(response.body, course_url_name);
+		}
+
+		const data = JSON.parse(response.body);
+
+		await find_course_multi_requests(data['next'], headers, course_url_name);
+	} catch (error) {
+		handle_error(error['message']);
+	}
+};
+
 const find_course = async (headers, course_url_name) => {
 	try {
 		const response = await get_request(`${search_url}${course_url_name}`, headers);
@@ -78,7 +99,38 @@ const find_course = async (headers, course_url_name) => {
 			course_found = await find_archived_course(headers, course_url_name);
 
 			if (!course_found) {
-				handle_error('You do not own this course');
+				const subscribed_url = search_url.replace('5&search=', '100&ordering=-last_accessed');
+				const check_spinner = [0];
+				console.log('\n');
+
+				const spinner = '|/-\\';
+
+				const render = (i = 1) => {
+					if (check_spinner[0]) {
+						return;
+					}
+
+					process.stderr.write('\r');
+					readline.clearLine(process.stderr, 1);
+					readline.cursorTo(process.stderr, 0);
+					process.stderr.write(`${yellow(spinner[i])} ${cyan().inverse(' Searching course ')}`);
+
+					setTimeout(() => {
+						i++;
+						render(i % spinner.length);
+					}, 100);
+				};
+
+				render();
+
+				course_found = await find_course_multi_requests(subscribed_url, headers, course_url_name);
+
+				console.log(`  ${green().inverse(' Done ')}`);
+				check_spinner[0] = 1;
+
+				if (!course_found) {
+					handle_error('You do not own this course');
+				}
 			}
 		}
 
