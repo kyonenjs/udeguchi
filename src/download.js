@@ -208,6 +208,19 @@ const filter_course_data = (data, start, end) => {
 		);
 	});
 
+	if (lectures[0]['_class'] !== 'chapter') {
+		const lost_chapter_name = lectures[0]['title'];
+		const lost_chapter = {
+			_class: 'chapter',
+			title: lost_chapter_name,
+			object_index: 1
+		};
+
+		lectures.forEach(content => content['_class'] === 'chapter' && content['object_index']++);
+
+		lectures.unshift(lost_chapter);
+	}
+
 	if (commander.lecture) {
 		return filter_lecture(lectures);
 	}
