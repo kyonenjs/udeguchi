@@ -11,7 +11,7 @@ const {download_supplementary_assets} = require('./download_assets');
 const create_chapter_folder = (content, course_path) => {
 	const chapter_response_index = `${content[0]['object_index']}`;
 	const chapter_name = `${chapter_response_index.padStart(2, '0')} ${content[0]['title']}`.replace(
-		/[/\\?%*:|"<>]/g,
+		/[/\\?%*:|"<>$]/g,
 		'_'
 	);
 
@@ -33,7 +33,7 @@ const create_chapter_folder = (content, course_path) => {
 const download_lecture_article = (content, chapter_path) => {
 	const article_response_index = `${content[0]['object_index']}`;
 	const article_name = `${article_response_index.padStart(3, '0')} ${content[0]['title']}.html`.replace(
-		/[/\\?%*:|"<>]/g,
+		/[/\\?%*:|"<>$]/g,
 		'_'
 	);
 	const article_body = content[0]['asset']['body'].replace(/\\\"/g, '"').replace(/\n+/g, '<br>');
@@ -120,7 +120,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 
 		const lecture_index = `${video_lecture['object_index']}`;
 		const video_name = `${lecture_index.padStart(3, '0')} ${video_lecture['title']}`.replace(
-			/[/\\?%*:|"<>]/g,
+			/[/\\?%*:|"<>$]/g,
 			'_'
 		);
 
