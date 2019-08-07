@@ -1,10 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const readline = require('readline');
 const commander = require('commander');
 const {yellow, red, cyan, green, inverse} = require('kleur');
 const {search_url, draft_course_search_url, sub_domain} = require('./references.js');
-const {handle_error, get_request, extract_course_name} = require('./utilities.js');
+const {handle_error, get_request, extract_course_name, render_spinner} = require('./utilities.js');
 const {download_course_contents} = require('./download.js');
 const {login_with_username_password} = require('./login_methods.js');
 
@@ -100,33 +99,15 @@ const find_course = async (headers, course_url_name) => {
 
 			if (!course_found) {
 				const subscribed_url = search_url.replace('5&search=', '100&ordering=-last_accessed');
-				const check_spinner = [0];
+				const check_spinner = {stop: 0};
 				console.log('\n');
 
-				const spinner = '|/-\\';
-
-				const render = (i = 1) => {
-					if (check_spinner[0]) {
-						return;
-					}
-
-					process.stderr.write('\r');
-					readline.clearLine(process.stderr, 1);
-					readline.cursorTo(process.stderr, 0);
-					process.stderr.write(`${yellow(spinner[i])} ${cyan().inverse(' Searching course ')}`);
-
-					setTimeout(() => {
-						i++;
-						render(i % spinner.length);
-					}, 100);
-				};
-
-				render();
+				render_spinner(check_spinner, `${cyan().inverse(' Searching course ')}`);
 
 				course_found = await find_course_multi_requests(subscribed_url, headers, course_url_name);
 
 				console.log(`  ${green().inverse(' Done ')}`);
-				check_spinner[0] = 1;
+				clearTimeout(check_spinner.stop);
 
 				if (!course_found) {
 					handle_error('You do not own this course');

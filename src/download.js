@@ -1,10 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const readline = require('readline');
 const commander = require('commander');
 const {cyan, green, yellow, magenta, red} = require('kleur');
 const {sub_domain} = require('./references.js');
-const {get_request, handle_error} = require('./utilities.js');
+const {get_request, handle_error, render_spinner} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 
@@ -139,7 +138,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		}
 
 		if (video_lecture['asset']['url_set']) {
-			const check_spinner = [0];
+			const check_spinner = {stop: 0};
 
 			try {
 				if (fs.existsSync(path.join(chapter_path, `${video_name}.mp4`))) {
@@ -151,25 +150,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 
 				console.log();
 
-				const spinner = '|/-\\';
-
-				const render = (i = 1) => {
-					if (check_spinner[0]) {
-						return;
-					}
-
-					process.stderr.write('\r');
-					readline.clearLine(process.stderr, 1);
-					readline.cursorTo(process.stderr, 0);
-					process.stderr.write(`${yellow(spinner[i])} ${magenta().inverse(' Lecture ')}  ${video_name}`);
-
-					setTimeout(() => {
-						i++;
-						render(i % spinner.length);
-					}, 100);
-				};
-
-				render();
+				render_spinner(check_spinner, `${magenta().inverse(' Lecture ')}  ${video_name}`);
 
 				const urls_location = video_lecture['asset']['url_set']['Video'];
 				const hls_link = video_lecture['asset']['hls_url'];
@@ -180,12 +161,12 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 					await download_mp4_video(urls_location, video_name, chapter_path);
 				}
 
-				check_spinner[0] = 1;
+				clearTimeout(check_spinner.stop);
 
 				content.shift();
 				await download_lecture_video(content, course_path, chapter_path);
 			} catch (error) {
-				check_spinner[0] = 1;
+				clearTimeout(check_spinner.stop);
 
 				if (error['message'] === '403') {
 					console.log(`  ${yellow('(fail to connect, retrying)')}`);

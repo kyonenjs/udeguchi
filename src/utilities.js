@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const readline = require('readline');
 const got = require('got');
-const { red, inverse, green } = require('kleur');
+const { red, yellow, green, inverse } = require('kleur');
 const { headers } = require('./references.js');
 
 const get_request = (url, get_headers) => {
@@ -112,6 +113,21 @@ const create_cached_cookie = (access_token, username) => {
 	}
 };
 
+const render_spinner = (check_spinner, message, i = 1) => {
+	const spinner = '|/-\\';
+
+	process.stderr.write('\r');
+	readline.clearLine(process.stderr, 1);
+	readline.cursorTo(process.stderr, 0);
+
+	process.stderr.write(`${yellow(spinner[i])} ${message}`);
+
+	check_spinner.stop = setTimeout(() => {
+		i++;
+		render_spinner(check_spinner, message, i % spinner.length);
+	}, 100);
+};
+
 module.exports = {
 	get_request,
 	post_request,
@@ -121,5 +137,6 @@ module.exports = {
 	create_auth_headers,
 	extract_course_name,
 	create_cached_cookie,
-	load_cached_cookie_file
+	load_cached_cookie_file,
+	render_spinner
 };
