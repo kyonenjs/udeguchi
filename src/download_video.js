@@ -49,7 +49,7 @@ const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 
 		const best_video_quality = urls_location.find(v => v['label'] === `${sorted_qualities[quality_index]}`);
 
-		const video_url = best_video_quality['file'].replace(/&/g, '^&');
+		const video_url = best_video_quality['file'];
 
 		await save_video(video_url, undefined, video_name, chapter_path);
 	} catch (error) {
@@ -62,7 +62,7 @@ const save_video = (url, quality_position, video_name, chapter_path) => {
 
 	const download_command = quality_position
 		? `-y -i "${url}"${quality_position}-acodec copy -bsf:a aac_adtstoasc -vcodec`
-		: `-headers "User-Agent: ${original_headers['User-Agent']}" -y -i ${url} -c`;
+		: `-headers "User-Agent: ${original_headers['User-Agent']}" -y -i "${url}" -c`;
 
 	return new Promise((resolve, reject) => {
 		exec(
@@ -72,7 +72,7 @@ const save_video = (url, quality_position, video_name, chapter_path) => {
 			)}"`,
 			err => {
 				if (err) {
-					reject(new Error('Failed to download the video!'));
+					return reject(new Error('Failed to download the video!'));
 				}
 
 				fs.renameSync(path.join(chapter_path, 'downloading.mp4'), path.join(chapter_path, `${video_name}.mp4`));
