@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const got = require('got');
-const {gray, green, yellow, inverse} = require('kleur');
+const {gray, yellow, inverse} = require('kleur');
 const {headers: original_headers} = require('./references.js');
+const {green_bg} = require('./utilities');
 
 // Save or download links not from Udemy
 const download_asset_external_link = (asset_name, asset_title, asset) => {
@@ -41,7 +42,7 @@ const save_asset = (asset_url, asset_name, asset_title) => {
 			res.pipe(fs.createWriteStream(asset_name));
 
 			res.on('end', () => {
-				console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_title}  ${green(inverse(' Done '))}`);
+				console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_title}  ${green_bg('Done')}`);
 			});
 		})
 		.resume();

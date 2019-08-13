@@ -102,11 +102,11 @@ const create_cached_cookie = (access_token, username) => {
 			});
 
 			save_to_cached_cookie_file(data);
-			console.log(`${green(inverse(' Cached cookie for future use '))}`);
+			console.log(`${green_bg('Cached cookie for future use')}`);
 		} else {
 			data[duplicateIndex].access_token = access_token;
 			save_to_cached_cookie_file(data);
-			console.log(`${green(inverse(' Updated cached cookie '))}`);
+			console.log(`${green_bg('Updated cached cookie')}`);
 		}
 	} catch (error) {
 		handle_error(error['message']);
@@ -128,6 +128,8 @@ const render_spinner = (check_spinner, message, i = 1) => {
 	}, 100);
 };
 
+const green_bg = message => green().inverse(` ${message} `);
+
 module.exports = {
 	get_request,
 	post_request,
@@ -138,5 +140,6 @@ module.exports = {
 	extract_course_name,
 	create_cached_cookie,
 	load_cached_cookie_file,
-	render_spinner
+	render_spinner,
+	green_bg
 };

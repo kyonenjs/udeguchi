@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const commander = require('commander');
-const { yellow, green, inverse } = require('kleur');
+const {yellow} = require('kleur');
 
 commander
 	.name('app.js')
@@ -27,7 +27,7 @@ commander
 	.option('--lecture <lectureNumber>', 'Download this lecture only')
 	.parse(process.argv);
 
-const { handle_error, extract_course_name } = require('./src/utilities.js');
+const { handle_error, extract_course_name, green_bg } = require('./src/utilities.js');
 const { find_owned_course } = require('./src/search.js');
 const { login_with_username_password, login_with_cookie } = require('./src/login_methods.js');
 const { use_cached_cookie } = require('./src/login_cached.js');
@@ -78,7 +78,7 @@ if (fs.existsSync(path.join(process.cwd(), ffmpeg_name))) {
 		rl.on('close', () => {
 			(async () => {
 				if (fs.existsSync(path.join(process.cwd(), 'cached_cookie.json'))) {
-					process.stdout.write(`\n${green(inverse(' Using cached cookie '))}`);
+					process.stdout.write(`\n${green_bg('Using cached cookie')}`);
 					return use_cached_cookie(username);
 				}
 
@@ -92,7 +92,7 @@ if (fs.existsSync(path.join(process.cwd(), ffmpeg_name))) {
 	if (commander.username && commander.password) {
 		(async () => {
 			if (fs.existsSync(path.join(process.cwd(), 'cached_cookie.json'))) {
-				process.stdout.write(`\n${green(inverse(' Using cached cookie '))}`);
+				process.stdout.write(`\n${green_bg('Using cached cookie')}`);
 				return use_cached_cookie(commander.username);
 			}
 

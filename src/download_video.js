@@ -2,8 +2,7 @@ const fs = require('fs');
 const {exec} = require('child_process');
 const path = require('path');
 const commander = require('commander');
-const {green} = require('kleur');
-const {get_request, handle_error} = require('./utilities.js');
+const {get_request, handle_error, green_bg} = require('./utilities.js');
 const {headers: original_headers} = require('./references.js');
 
 const download_hls_video = async (url, video_name, chapter_path) => {
@@ -78,7 +77,7 @@ const save_video = (url, quality_position, video_name, chapter_path) => {
 
 				fs.renameSync(path.join(chapter_path, 'downloading.mp4'), path.join(chapter_path, `${video_name}.mp4`));
 
-				console.log(`  ${green().inverse(' Done ')}`);
+				console.log(`  ${green_bg('Done')}`);
 				resolve('Done');
 			}
 		);

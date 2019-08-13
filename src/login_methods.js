@@ -1,5 +1,4 @@
 const fs = require('fs');
-const {green, inverse} = require('kleur');
 const {
 	handle_error,
 	get_request,
@@ -7,12 +6,13 @@ const {
 	find_access_token,
 	polish_cookies,
 	create_auth_headers,
-	create_cached_cookie
+	create_cached_cookie,
+	green_bg
 } = require('./utilities.js');
 const {headers, login_url} = require('./references.js');
 
 const login_with_username_password = async (username, password) => {
-	console.log(`\n\n${green(inverse(' Logging with username and password '))}\n`);
+	console.log(`\n\n${green_bg('Logging with username and password')}\n`);
 
 	try {
 		const get_data = await get_request(login_url, headers);
@@ -47,7 +47,7 @@ const login_with_cookie = (cookie_file_name, cached_token) => {
 		if (cached_token) {
 			access_token = cached_token;
 		} else {
-			process.stdout.write(`\n${green(inverse(' Logging with cookie '))}`);
+			process.stdout.write(`\n${green_bg('Logging with cookie')}`);
 			const data = fs.readFileSync(cookie_file_name).toString();
 			access_token = find_access_token(data);
 		}

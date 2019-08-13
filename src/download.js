@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const commander = require('commander');
-const {cyan, green, yellow, magenta, red} = require('kleur');
+const {cyan, yellow, magenta, red} = require('kleur');
 const {sub_domain} = require('./references.js');
-const {get_request, handle_error, render_spinner} = require('./utilities.js');
+const {get_request, handle_error, render_spinner, green_bg} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 
@@ -14,7 +14,7 @@ const create_chapter_folder = (content, course_path) => {
 		'_'
 	);
 
-	console.log(`\n${green().inverse(' Chapter ')}  ${chapter_name}`);
+	console.log(`\n${green_bg('Chapter')}  ${chapter_name}`);
 
 	const chapter_path = path.join(course_path, chapter_name);
 
@@ -43,7 +43,7 @@ const download_lecture_article = (content, chapter_path) => {
 
 	fs.writeFileSync(article_path, new_article_body);
 
-	console.log(`\n  ${magenta().inverse(' Lecture ')}  ${article_name}  ${green().inverse(' Done ')}`);
+	console.log(`\n  ${magenta().inverse(' Lecture ')}  ${article_name}  ${green_bg('Done')}`);
 
 	if (content[0]['supplementary_assets'].length > 0) {
 		download_supplementary_assets(
@@ -264,7 +264,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 		try {
 			const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
 
-			console.log(`  ${green().inverse(' Done ')}`);
+			console.log(`  ${green_bg('Done')}`);
 
 			await download_lecture_video(lectures, course_path);
 		} catch (error) {
@@ -290,7 +290,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 const download_course_multi_requests = async (course_content_url, auth_headers, course_path, previous_data = []) => {
 	try {
 		if (!course_content_url) {
-			console.log(`  ${green().inverse(' Done ')}`);
+			console.log(`  ${green_bg('Done')}`);
 
 			await download_lecture_video(previous_data, course_path);
 		}
