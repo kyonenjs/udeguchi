@@ -14,6 +14,8 @@ const use_cached_cookie = async (username, password) => {
 		find_owned_course(extract_course_name(course_url), auth_headers);
 	} else {
 		process.stdout.write(`\n${green_bg('Using cached cookie')}`);
+		commander.username = username;
+		commander.password = password;
 		const auth_headers = login_with_cookie(undefined, data[account_index].access_token);
 		find_owned_course(extract_course_name(course_url), auth_headers);
 	}
