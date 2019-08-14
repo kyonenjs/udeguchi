@@ -119,7 +119,7 @@ const find_course = async (headers, course_url_name) => {
 		download_course_contents(course_found['id'], headers, course_path);
 	} catch (error) {
 		if (error['statusCode'] === 403) {
-			console.log(`${red(inverse(' Fail '))}\n\n`);
+			console.log(`  ${red(inverse(' Fail '))}\n\n`);
 
 			// If user provide username and password
 			// maybe 403 error because your cached cookie is not valid anymore
