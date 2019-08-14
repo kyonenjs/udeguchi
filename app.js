@@ -78,7 +78,7 @@ if (fs.existsSync(path.join(process.cwd(), ffmpeg_name))) {
 		rl.on('close', () => {
 			(async () => {
 				if (fs.existsSync(path.join(process.cwd(), 'cached_cookie.json'))) {
-					return use_cached_cookie(username);
+					return use_cached_cookie(username, password);
 				}
 
 				const auth_headers = await login_with_username_password(username, password);
@@ -91,7 +91,7 @@ if (fs.existsSync(path.join(process.cwd(), ffmpeg_name))) {
 	if (commander.username && commander.password) {
 		(async () => {
 			if (fs.existsSync(path.join(process.cwd(), 'cached_cookie.json'))) {
-				return use_cached_cookie(commander.username);
+				return use_cached_cookie(commander.username, commander.password);
 			}
 
 			const auth_headers = await login_with_username_password(commander.username, commander.password);
