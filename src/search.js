@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const commander = require('commander');
-const {yellow, red, cyan, inverse} = require('kleur');
+const {yellow, red, inverse} = require('kleur');
 const {search_url, draft_course_search_url, sub_domain} = require('./references.js');
-const {handle_error, get_request, extract_course_name, render_spinner, green_bg} = require('./utilities.js');
+const {handle_error, get_request, extract_course_name, render_spinner, green_bg, cyan_bg} = require('./utilities.js');
 const {download_course_contents} = require('./download.js');
 const {login_with_username_password} = require('./login_methods.js');
 
@@ -102,7 +102,7 @@ const find_course = async (headers, course_url_name) => {
 				const check_spinner = {stop: 0};
 				console.log('\n');
 
-				render_spinner(check_spinner, `${cyan().inverse(' Searching course ')}`);
+				render_spinner(check_spinner, `${cyan_bg('Searching course')}`);
 
 				course_found = await find_course_multi_requests(subscribed_url, headers, course_url_name);
 

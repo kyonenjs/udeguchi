@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const commander = require('commander');
-const {cyan, yellow, magenta, red} = require('kleur');
+const {yellow, magenta, red} = require('kleur');
 const {sub_domain} = require('./references.js');
-const {get_request, handle_error, render_spinner, green_bg} = require('./utilities.js');
+const {get_request, handle_error, render_spinner, green_bg, cyan_bg} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 
@@ -260,46 +260,52 @@ const download_course_info = async (course_content_url, auth_headers) => {
 };
 
 const download_course_one_request = async (course_content_url, auth_headers, course_path) => {
-	if (course_content_url) {
-		try {
-			const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
+	const check_spinner = {stop: 0};
+	try {
+		console.log('\n');
+		render_spinner(check_spinner, `${cyan_bg('Getting course information')}`);
 
-			console.log(`  ${green_bg('Done')}`);
+		const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
+
+		console.log(`  ${green_bg('Done')}`);
+		clearTimeout(check_spinner.stop);
+
+		await download_lecture_video(lectures, course_path);
+	} catch (error) {
+		if (error['statusCode'] === 502) {
+			const lectures = await download_course_multi_requests(`${course_content_url}200`, auth_headers, check_spinner);
 
 			await download_lecture_video(lectures, course_path);
-		} catch (error) {
-			if (error['statusCode'] === 502) {
-				await download_course_multi_requests(`${course_content_url}200`, auth_headers, course_path);
-			} else if (error['code'] === 'ENOTFOUND') {
-				handle_error('Unable to connect to Udemy server');
-			} else if (error['message'].includes('lecture_id')) {
-				const {lecture_id, chapter_path} = JSON.parse(error['message']);
+		} else if (error['code'] === 'ENOTFOUND') {
+			handle_error('Unable to connect to Udemy server');
+		} else if (error['message'].includes('lecture_id')) {
+			const {lecture_id, chapter_path} = JSON.parse(error['message']);
 
-				const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
+			const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
 
-				const start_again_lecture = lectures.findIndex(content => content['id'] === lecture_id);
+			const start_again_lecture = lectures.findIndex(content => content['id'] === lecture_id);
 
-				await download_lecture_video(lectures.slice(start_again_lecture), course_path, chapter_path);
-			}
-
-			handle_error(error['message']);
+			await download_lecture_video(lectures.slice(start_again_lecture), course_path, chapter_path);
 		}
+
+		handle_error(error['message']);
 	}
 };
 
-const download_course_multi_requests = async (course_content_url, auth_headers, course_path, previous_data = []) => {
+const download_course_multi_requests = async (course_content_url, auth_headers, check_spinner, previous_data = []) => {
 	try {
 		if (!course_content_url) {
 			console.log(`  ${green_bg('Done')}`);
+			clearTimeout(check_spinner.stop);
 
-			await download_lecture_video(previous_data, course_path);
+			return previous_data;
 		}
 
 		const response = await get_request(course_content_url, auth_headers);
 
 		const data = JSON.parse(response.body);
 		previous_data = [...previous_data, ...data['results']];
-		await download_course_multi_requests(data['next'], auth_headers, course_path, previous_data);
+		await download_course_multi_requests(data['next'], auth_headers, check_spinner, previous_data);
 	} catch (error) {
 		handle_error(error['message']);
 	}
@@ -308,7 +314,6 @@ const download_course_multi_requests = async (course_content_url, auth_headers, 
 const download_course_contents = async (course_id, auth_headers, course_path) => {
 	const course_content_url = `https://${sub_domain}.udemy.com/api-2.0/courses/${course_id}/subscriber-curriculum-items/?fields[lecture]=supplementary_assets,title,asset,object_index&fields[chapter]=title,object_index,chapter_index,sort_order&fields[asset]=title,asset_type,length,url_set,hls_url,captions,body,file_size,filename,external_url&page=1&locale=en_US&page_size=`;
 
-	process.stdout.write(`\n\n${cyan().inverse(' Getting course information ')}`);
 	await download_course_one_request(course_content_url, auth_headers, course_path);
 };
 

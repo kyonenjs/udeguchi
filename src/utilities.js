@@ -3,7 +3,7 @@ const path = require('path');
 const url = require('url');
 const readline = require('readline');
 const got = require('got');
-const { red, yellow, green, inverse } = require('kleur');
+const { red, yellow, green, cyan, inverse } = require('kleur');
 const { headers } = require('./references.js');
 
 const get_request = (url, get_headers) => {
@@ -130,6 +130,8 @@ const render_spinner = (check_spinner, message, i = 1) => {
 
 const green_bg = message => green().inverse(` ${message} `);
 
+const cyan_bg = message => cyan().inverse(` ${message} `);
+
 module.exports = {
 	get_request,
 	post_request,
@@ -141,5 +143,6 @@ module.exports = {
 	create_cached_cookie,
 	load_cached_cookie_file,
 	render_spinner,
-	green_bg
+	green_bg,
+	cyan_bg
 };
