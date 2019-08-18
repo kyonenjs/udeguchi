@@ -132,6 +132,8 @@ const green_bg = message => green().inverse(` ${message} `);
 
 const cyan_bg = message => cyan().inverse(` ${message} `);
 
+const safe_name = name => name.replace(/[/\\?%*:|"<>$]/g, '_').replace(/^\.+|\.+$/g, '');
+
 module.exports = {
 	get_request,
 	post_request,
@@ -144,5 +146,6 @@ module.exports = {
 	load_cached_cookie_file,
 	render_spinner,
 	green_bg,
-	cyan_bg
+	cyan_bg,
+	safe_name
 };

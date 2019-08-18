@@ -3,16 +3,13 @@ const path = require('path');
 const commander = require('commander');
 const {yellow, magenta, red} = require('kleur');
 const {sub_domain} = require('./references.js');
-const {get_request, handle_error, render_spinner, green_bg, cyan_bg} = require('./utilities.js');
+const {get_request, handle_error, render_spinner, green_bg, cyan_bg, safe_name} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 
 const create_chapter_folder = (content, course_path) => {
 	const chapter_response_index = `${content[0]['object_index']}`;
-	const chapter_name = `${chapter_response_index.padStart(2, '0')} ${content[0]['title']}`.replace(
-		/[/\\?%*:|"<>$]/g,
-		'_'
-	);
+	const chapter_name = safe_name(`${chapter_response_index.padStart(2, '0')} ${content[0]['title']}`);
 
 	console.log(`\n${green_bg('Chapter')}  ${chapter_name}`);
 
@@ -31,10 +28,7 @@ const create_chapter_folder = (content, course_path) => {
 
 const download_lecture_article = (content, chapter_path) => {
 	const article_response_index = `${content[0]['object_index']}`;
-	const article_name = `${article_response_index.padStart(3, '0')} ${content[0]['title']}.html`.replace(
-		/[/\\?%*:|"<>$]/g,
-		'_'
-	);
+	const article_name = safe_name(`${article_response_index.padStart(3, '0')} ${content[0]['title']}.html`);
 	const article_body = content[0]['asset']['body'].replace(/\\\"/g, '"').replace(/\n+/g, '<br>');
 
 	const new_article_body = `<html><head><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/image.min.css"></head><body><div class="container"><div class="row"><div class="col-md-10 col-md-offset-1 ui image"><p class="lead">${article_body}</p></div></div></div></body></html>`;
@@ -118,10 +112,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		const video_lecture = content[0];
 
 		const lecture_index = `${video_lecture['object_index']}`;
-		const video_name = `${lecture_index.padStart(3, '0')} ${video_lecture['title']}`.replace(
-			/[/\\?%*:|"<>$]/g,
-			'_'
-		);
+		const video_name = safe_name(`${lecture_index.padStart(3, '0')} ${video_lecture['title']}`);
 
 		if (!commander.skipSub) {
 			if (video_lecture['asset']['captions'].length !== 0) {

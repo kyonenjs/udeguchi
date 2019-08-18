@@ -3,7 +3,7 @@ const path = require('path');
 const got = require('got');
 const {gray, yellow, inverse} = require('kleur');
 const {headers: original_headers} = require('./references.js');
-const {green_bg} = require('./utilities');
+const {green_bg, safe_name} = require('./utilities');
 
 // Save or download links not from Udemy
 const download_asset_external_link = (asset_name, asset_title, asset) => {
@@ -51,7 +51,7 @@ const save_asset = (asset_url, asset_name, asset_title) => {
 const download_supplementary_assets = (content, chapter_path, lecture_index) => {
 	if (content.length > 0) {
 		const asset = content[0];
-		let asset_title = `${lecture_index} ${asset['title']}`.replace(/[/\\?%*:|"<>]/g, '_');
+		let asset_title = safe_name(`${lecture_index} ${asset['title']}`);
 		let asset_name = path.join(chapter_path, asset_title);
 
 		if (asset['asset_type'] === 'ExternalLink') {
@@ -59,7 +59,7 @@ const download_supplementary_assets = (content, chapter_path, lecture_index) => 
 		}
 
 		if (asset['asset_type'] === 'File') {
-			asset_title = `${lecture_index} ${asset['filename']}`.replace(/[/\\?%*:|"<>]/g, '_');
+			asset_title = safe_name(`${lecture_index} ${asset['filename']}`);
 			asset_name = path.join(chapter_path, asset_title);
 
 			if (fs.existsSync(asset_name)) {
