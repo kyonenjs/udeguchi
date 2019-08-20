@@ -188,7 +188,7 @@ const filter_lecture = (data) => {
 	handle_error('Unable to find the lecture');
 };
 
-const filter_course_data = (data, start, end) => {
+const filter_course_data = (data, start = commander.chapterStart, end = commander.chapterEnd) => {
 	const lectures = data.filter(content => {
 		return (
 			content['_class'] === 'chapter' ||
@@ -247,7 +247,7 @@ const download_course_info = async (course_content_url, auth_headers) => {
 
 	const data = JSON.parse(response.body).results;
 
-	return filter_course_data(data, commander.chapterStart, commander.chapterEnd);
+	return filter_course_data(data);
 };
 
 const download_course_one_request = async (course_content_url, auth_headers, course_path) => {
@@ -287,7 +287,7 @@ const download_course_multi_requests = async (course_content_url, {auth_headers,
 			console.log(`  ${green_bg('Done')}`);
 			clearTimeout(check_spinner.stop);
 
-			await download_lecture_video(previous_data, course_path);
+			await download_lecture_video(filter_course_data(previous_data), course_path);
 		}
 
 		const response = await get_request(course_content_url, auth_headers);
