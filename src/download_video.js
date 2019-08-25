@@ -2,6 +2,7 @@ const fs = require('fs');
 const {exec} = require('child_process');
 const path = require('path');
 const commander = require('commander');
+const {yellow} = require('kleur');
 const {get_request, handle_error, green_bg} = require('./utilities.js');
 const {headers: original_headers} = require('./references.js');
 
@@ -57,6 +58,11 @@ const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 };
 
 const save_video = (url, quality_position, video_name, chapter_path) => {
+	if (!url) {
+		console.log(`  ${yellow('(no download link)')}`);
+		return new Promise(resolve => resolve('Done'));
+	}
+
 	const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 
 	const download_command = quality_position
