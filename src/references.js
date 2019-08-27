@@ -1,5 +1,5 @@
 const url = require('url');
-const { red, inverse } = require('kleur');
+const {red, inverse} = require('kleur');
 const commander = require('commander');
 
 if (!commander.args[0]) {

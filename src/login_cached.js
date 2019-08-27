@@ -1,7 +1,7 @@
 const commander = require('commander');
-const { find_owned_course } = require('./search');
-const { extract_course_name, load_cached_cookie_file, green_bg } = require('./utilities.js');
-const { login_with_cookie, login_with_username_password } = require('./login_methods.js');
+const {find_owned_course} = require('./search');
+const {extract_course_name, load_cached_cookie_file, green_bg} = require('./utilities.js');
+const {login_with_cookie, login_with_username_password} = require('./login_methods.js');
 
 const use_cached_cookie = async (username, password) => {
 	const data = load_cached_cookie_file();

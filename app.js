@@ -27,10 +27,10 @@ commander
 	.option('--lecture <lectureNumber>', 'Download this lecture only')
 	.parse(process.argv);
 
-const { handle_error, extract_course_name } = require('./src/utilities.js');
-const { find_owned_course } = require('./src/search.js');
-const { login_with_username_password, login_with_cookie } = require('./src/login_methods.js');
-const { use_cached_cookie } = require('./src/login_cached.js');
+const {handle_error, extract_course_name} = require('./src/utilities.js');
+const {find_owned_course} = require('./src/search.js');
+const {login_with_username_password, login_with_cookie} = require('./src/login_methods.js');
+const {use_cached_cookie} = require('./src/login_cached.js');
 
 if (commander.chapterStart && !(parseInt(commander.chapterStart, 10) > 0)) {
 	handle_error('Invalid chapter');

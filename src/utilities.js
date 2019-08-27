@@ -3,11 +3,11 @@ const path = require('path');
 const url = require('url');
 const readline = require('readline');
 const got = require('got');
-const { red, yellow, green, cyan, inverse } = require('kleur');
-const { headers } = require('./references.js');
+const {red, yellow, green, cyan, inverse} = require('kleur');
+const {headers} = require('./references.js');
 
 const get_request = (url, get_headers) => {
-	return got(url, { headers: get_headers });
+	return got(url, {headers: get_headers});
 };
 
 const post_request = (url, post_body, cookie) => {
