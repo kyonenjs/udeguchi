@@ -6,9 +6,7 @@ const {headers: original_headers} = require('./references.js');
 const {green_bg, safe_name} = require('./utilities');
 
 // Save or download links not from Udemy
-const download_asset_external_link = (asset_name, asset_title, asset) => {
-	const asset_url = asset['external_url'];
-
+const download_asset_external_link = (asset_name, asset_title, {external_url: asset_url}) => {
 	if (asset_title.match(/\b\.\w{1,4}\b/i)) {
 		if (!fs.existsSync(asset_name)) {
 			save_asset(asset_url, asset_name, asset_title);
@@ -17,11 +15,11 @@ const download_asset_external_link = (asset_name, asset_title, asset) => {
 		try {
 			const data = fs.readFileSync(`${asset_name}.txt`).toString();
 			const urls_in_file = data.split('\n');
-			if (!urls_in_file.includes(asset['external_url'].trim())) {
-				fs.appendFileSync(`${asset_name}.txt`, `${asset['external_url'].trim()}\n`);
+			if (!urls_in_file.includes(asset_url.trim())) {
+				fs.appendFileSync(`${asset_name}.txt`, `${asset_url.trim()}\n`);
 			}
 		} catch (error) {
-			fs.writeFileSync(`${asset_name}.txt`, `${asset['external_url'].trim()}\n`);
+			fs.writeFileSync(`${asset_name}.txt`, `${asset_url.trim()}\n`);
 		}
 	}
 };
