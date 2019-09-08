@@ -36,18 +36,23 @@ const download_asset_external_link = (chapter_path, lecture_index, asset) => {
 };
 
 // Download files with link from Udemy
-const download_asset_file = (chapter_path, lecture_index, asset) => {
-	const asset_url = asset['url_set']['File'][0]['file'];
+const download_asset_file = ({chapter_path, lecture_index, asset}) => {
 	const asset_name = safe_name(`${lecture_index} ${asset['filename']}`);
+	const asset_name_with_path = path.join(chapter_path, asset_name);
+	const asset_url = asset['url_set']['File'][0]['file'];
 	const asset_id = asset['id'];
 
-	save_asset({
-		asset_url,
-		asset_name,
-		asset_id,
-		chapter_path,
-		lecture_index
-	});
+	if (fs.existsSync(asset_name_with_path)) {
+		console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
+	} else {
+		save_asset({
+			asset_url,
+			asset_name,
+			asset_id,
+			chapter_path,
+			lecture_index
+		});
+	}
 };
 
 const save_asset = ({asset_url, asset_name, asset_id, chapter_path, lecture_index}) => {
@@ -78,14 +83,7 @@ const download_supplementary_assets = (content, chapter_path, lecture_index) => 
 		}
 
 		if (asset['asset_type'] === 'File') {
-			const asset_name = safe_name(`${lecture_index} ${asset['filename']}`);
-			const asset_name_with_path = path.join(chapter_path, asset_name);
-
-			if (fs.existsSync(asset_name_with_path)) {
-				console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
-			} else {
-				download_asset_file(chapter_path, lecture_index, asset);
-			}
+			download_asset_file({chapter_path, lecture_index, asset});
 		}
 
 		content.shift();
