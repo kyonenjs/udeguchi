@@ -3,7 +3,7 @@ const path = require('path');
 const got = require('got');
 const {gray, yellow, inverse} = require('kleur');
 const {headers: original_headers} = require('./references.js');
-const {green_bg, safe_name} = require('./utilities');
+const {green_bg, safe_name, handle_error} = require('./utilities');
 
 // Save or download links not from Udemy
 const download_asset_external_link = (chapter_path, lecture_index, asset) => {
@@ -67,8 +67,19 @@ const save_asset = ({asset_url, asset_name, asset_id, chapter_path, lecture_inde
 			res.pipe(fs.createWriteStream(downloading_asset_name_with_path));
 
 			res.on('end', () => {
-				fs.renameSync(downloading_asset_name_with_path, asset_name_with_path);
-				console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
+				fs.access(downloading_asset_name_with_path, (error) => {
+					if (error) {
+						handle_error(`Unable to find asset ${yellow(path.parse(downloading_asset_name_with_path)['base'])}`);
+					}
+
+					fs.rename(downloading_asset_name_with_path, asset_name_with_path, (error) => {
+						if (error) {
+							handle_error(`Unable to rename asset ${yellow(asset_name)}`);
+						}
+
+						console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
+					});
+				});
 			});
 		})
 		.resume();
