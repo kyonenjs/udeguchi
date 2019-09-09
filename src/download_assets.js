@@ -41,6 +41,7 @@ const download_asset_file = ({chapter_path, lecture_index, asset}) => {
 	const asset_name_with_path = path.join(chapter_path, asset_name);
 	const asset_url = asset['url_set']['File'][0]['file'];
 	const asset_id = asset['id'];
+	const asset_size = asset['file_size'];
 
 	if (fs.existsSync(asset_name_with_path)) {
 		console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
@@ -49,15 +50,18 @@ const download_asset_file = ({chapter_path, lecture_index, asset}) => {
 			asset_url,
 			asset_name,
 			asset_id,
+			asset_size,
 			chapter_path,
 			lecture_index
 		});
 	}
 };
 
-const save_asset = ({asset_url, asset_name, asset_id, chapter_path, lecture_index}) => {
+const save_asset = ({asset_url, asset_name, asset_id, asset_size, chapter_path, lecture_index}) => {
 	const asset_name_with_path = path.join(chapter_path, asset_name);
-	const downloading_asset_name_with_path = path.join(chapter_path, `${lecture_index} downloading asset ${asset_id}`);
+	const downloading_asset_name_with_path = asset_size < 100000
+		? asset_name_with_path
+		: path.join(chapter_path, `${lecture_index} downloading asset ${asset_id}`);
 
 	const stream = got.stream(asset_url, {
 		headers: {'User-Agent': original_headers['User-Agent']}
@@ -67,19 +71,15 @@ const save_asset = ({asset_url, asset_name, asset_id, chapter_path, lecture_inde
 			res.pipe(fs.createWriteStream(downloading_asset_name_with_path));
 
 			res.on('end', () => {
-				fs.access(downloading_asset_name_with_path, (error) => {
-					if (error) {
-						handle_error(`Unable to find asset ${yellow(path.parse(downloading_asset_name_with_path)['base'])}`);
-					}
-
+				if (asset_size > 100000) {
 					fs.rename(downloading_asset_name_with_path, asset_name_with_path, (error) => {
 						if (error) {
 							handle_error(`Unable to rename asset ${yellow(asset_name)}`);
 						}
-
-						console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
 					});
-				});
+				}
+
+				console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
 			});
 		})
 		.resume();
