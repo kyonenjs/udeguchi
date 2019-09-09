@@ -71,7 +71,7 @@ const save_asset = ({asset_url, asset_name, asset_id, asset_size, chapter_path, 
 			res.pipe(fs.createWriteStream(downloading_asset_name_with_path));
 
 			res.on('end', () => {
-				if (asset_size > 100000) {
+				if (asset_size > 100000 || !asset_size) {
 					fs.rename(downloading_asset_name_with_path, asset_name_with_path, (error) => {
 						if (error) {
 							handle_error(`Unable to rename asset ${yellow(asset_name)}`);
