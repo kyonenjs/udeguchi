@@ -42,12 +42,7 @@ if (!commander.chapterStart && commander.chapterEnd && !(parseInt(commander.chap
 
 commander.lecture && !(parseInt(commander.lecture, 10) > 0) && handle_error('Invalid lecture number');
 
-let ffmpeg_name = '';
-if (process.platform === 'win32') {
-	ffmpeg_name = 'ffmpeg.exe';
-} else {
-	ffmpeg_name = 'ffmpeg';
-}
+const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 
 const course_url = commander.args[0];
 
