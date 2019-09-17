@@ -47,10 +47,8 @@ const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 const course_url = commander.args[0];
 
 if (fs.existsSync(path.join(process.cwd(), ffmpeg_name))) {
-	if (commander.output) {
-		if (!fs.existsSync(commander.output)) {
-			handle_error(`Location ${yellow(path.resolve(commander.output))} does not exist!`);
-		}
+	if (commander.output && !fs.existsSync(commander.output)) {
+		handle_error(`Location ${yellow(path.resolve(commander.output))} does not exist!`);
 	}
 
 	if (!commander.username && !commander.password && !commander.cookie) {
