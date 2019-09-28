@@ -58,9 +58,7 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 			lang['locale_id'].toLowerCase().includes(commander.lang.toLowerCase())
 		);
 
-		if (lang) {
-			sub = [lang];
-		}
+		if (lang) sub = [lang];
 	}
 
 	try {
