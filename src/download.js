@@ -86,9 +86,7 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 };
 
 const download_lecture_video = async (content, course_path, chapter_path) => {
-	if (content.length === 0) {
-		process.exit();
-	}
+	if (!content.length) process.exit();
 
 	if (content[0]['_class'] === 'chapter') {
 		chapter_path = create_chapter_folder(content, course_path);
