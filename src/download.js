@@ -91,17 +91,13 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 	if (content[0]['_class'] === 'chapter') {
 		chapter_path = create_chapter_folder(content, course_path);
 		content.shift();
-		if (content.length === 0) {
-			return;
-		}
+		if (!content.length) return;
 	}
 
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Article') {
 		download_lecture_article(content, chapter_path);
 		content.shift();
-		if (content.length === 0) {
-			return;
-		}
+		if (!content.length) return;
 	}
 
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Video') {
