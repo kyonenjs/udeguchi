@@ -5,33 +5,20 @@ const {gray, yellow, inverse} = require('kleur');
 const {headers: original_headers} = require('./references.js');
 const {green_bg, safe_name, handle_error} = require('./utilities');
 
-// Save or download links not from Udemy
+// Save links not from Udemy
 const download_asset_external_link = (chapter_path, lecture_index, asset) => {
-	const asset_name = safe_name(`${lecture_index} ${asset['title']}`);
+	const asset_name = safe_name(`${lecture_index} ${asset['filename']}`);
 	const asset_name_with_path = path.join(chapter_path, asset_name);
 	const asset_url = asset['external_url'];
-	const asset_id = asset['id'];
 
-	if (asset_name.match(/\b\.\w{1,4}\b/i)) {
-		if (!fs.existsSync(asset_name_with_path)) {
-			save_asset({
-				asset_url,
-				asset_name,
-				asset_id,
-				chapter_path,
-				lecture_index
-			});
+	try {
+		const data = fs.readFileSync(`${asset_name_with_path}.txt`).toString();
+		const urls_in_file = data.split('\n');
+		if (!urls_in_file.includes(asset_url.trim())) {
+			fs.appendFileSync(`${asset_name_with_path}.txt`, `${asset_url.trim()}\n`);
 		}
-	} else {
-		try {
-			const data = fs.readFileSync(`${asset_name_with_path}.txt`).toString();
-			const urls_in_file = data.split('\n');
-			if (!urls_in_file.includes(asset_url.trim())) {
-				fs.appendFileSync(`${asset_name_with_path}.txt`, `${asset_url.trim()}\n`);
-			}
-		} catch (error) {
-			fs.writeFileSync(`${asset_name_with_path}.txt`, `${asset_url.trim()}\n`);
-		}
+	} catch (error) {
+		fs.writeFileSync(`${asset_name_with_path}.txt`, `${asset_url.trim()}\n`);
 	}
 };
 
