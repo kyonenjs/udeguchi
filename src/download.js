@@ -106,10 +106,8 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		const lecture_index = `${video_lecture['object_index']}`;
 		const video_name = safe_name(`${lecture_index.padStart(3, '0')} ${video_lecture['title']}`);
 
-		if (!commander.skipSub) {
-			if (video_lecture['asset']['captions'].length !== 0) {
-				download_subtitles(video_lecture['asset']['captions'], video_name, chapter_path);
-			}
+		if (!commander.skipSub && video_lecture['asset']['captions'].length) {
+			download_subtitles(video_lecture['asset']['captions'], video_name, chapter_path);
 		}
 
 		if (video_lecture['supplementary_assets'].length > 0) {
