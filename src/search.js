@@ -9,9 +9,7 @@ const {login_with_username_password} = require('./login_methods.js');
 
 const create_course_folder = (course_name, destination = process.cwd()) => {
 	try {
-		if (commander.output) {
-			destination = path.resolve(commander.output);
-		}
+		if (commander.output) destination = path.resolve(commander.output);
 
 		if (!fs.existsSync(`${path.join(destination, course_name)}`)) {
 			fs.mkdirSync(`${path.join(destination, course_name)}`);
