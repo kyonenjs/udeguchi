@@ -68,9 +68,7 @@ const find_archived_course = async (headers, course_url_name) => {
 
 const find_course_multi_requests = async (subscribed_url, headers, course_url_name) => {
 	try {
-		if (!subscribed_url) {
-			return;
-		}
+		if (!subscribed_url) return;
 
 		const response = await get_request(subscribed_url, headers);
 
