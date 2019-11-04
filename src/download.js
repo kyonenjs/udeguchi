@@ -111,11 +111,22 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		}
 
 		if (video_lecture['supplementary_assets'].length > 0) {
-			download_supplementary_assets(
-				video_lecture['supplementary_assets'],
-				chapter_path,
-				lecture_index.padStart(3, '0')
-			);
+			try {
+				await download_supplementary_assets(
+					video_lecture['supplementary_assets'],
+					chapter_path,
+					lecture_index.padStart(3, '0')
+				);
+			} catch (error) {
+				if (error['statusCode'] === 403) {
+					throw new Error(JSON.stringify({
+						lecture_id: video_lecture['id'],
+						chapter_path
+					}));
+				}
+
+				throw new Error(error['message']);
+			}
 		}
 
 		if (video_lecture['asset']['url_set']) {

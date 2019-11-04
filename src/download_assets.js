@@ -23,7 +23,7 @@ const download_asset_external_link = (chapter_path, lecture_index, asset) => {
 };
 
 // Download files with link from Udemy
-const download_asset_file = ({chapter_path, lecture_index, asset}) => {
+const download_asset_file = async ({chapter_path, lecture_index, asset}) => {
 	const asset_name = safe_name(`${lecture_index} ${asset['filename']}`);
 	const asset_name_with_path = path.join(chapter_path, asset_name);
 	const asset_url = asset['url_set']['File'][0]['file'];
@@ -33,14 +33,18 @@ const download_asset_file = ({chapter_path, lecture_index, asset}) => {
 	if (fs.existsSync(asset_name_with_path)) {
 		console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
 	} else {
-		save_asset({
-			asset_url,
-			asset_name,
-			asset_id,
-			asset_size,
-			chapter_path,
-			lecture_index
-		});
+		try {
+			await save_asset({
+				asset_url,
+				asset_name,
+				asset_id,
+				asset_size,
+				chapter_path,
+				lecture_index
+			});
+		} catch (error) {
+			throw error;
+		}
 	}
 };
 
@@ -50,29 +54,35 @@ const save_asset = ({asset_url, asset_name, asset_id, asset_size, chapter_path, 
 		? asset_name_with_path
 		: path.join(chapter_path, `${lecture_index} downloading asset ${asset_id}`);
 
-	const stream = got.stream(asset_url, {
-		headers: {'User-Agent': original_headers['User-Agent']}
-	});
-	stream
-		.on('response', res => {
-			res.pipe(fs.createWriteStream(downloading_asset_name_with_path));
+	return new Promise((resolve, reject) => {
+		const stream = got.stream(asset_url, {
+			headers: {'User-Agent': original_headers['User-Agent']}
+		});
+		stream
+			.on('response', res => {
+				res.pipe(fs.createWriteStream(downloading_asset_name_with_path));
 
-			res.on('end', () => {
-				if (asset_size > 100000 || !asset_size) {
-					fs.rename(downloading_asset_name_with_path, asset_name_with_path, (error) => {
-						if (error) {
-							handle_error(`Unable to rename asset ${yellow(asset_name)}`);
-						}
-					});
-				}
+				res.on('end', () => {
+					if (asset_size > 100000 || !asset_size) {
+						fs.rename(downloading_asset_name_with_path, asset_name_with_path, (error) => {
+							if (error) {
+								handle_error(`Unable to rename asset ${yellow(asset_name)}`);
+							}
+						});
+					}
 
-				console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
+					console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
+					resolve('Finish');
+				});
+			})
+			.resume()
+			.on('error', (error) => {
+				reject(error);
 			});
-		})
-		.resume();
+	});
 };
 
-const download_supplementary_assets = (content, chapter_path, lecture_index) => {
+const download_supplementary_assets = async (content, chapter_path, lecture_index) => {
 	if (content.length > 0) {
 		const asset = content[0];
 
@@ -81,7 +91,11 @@ const download_supplementary_assets = (content, chapter_path, lecture_index) => 
 		}
 
 		if (asset['asset_type'] === 'File') {
-			download_asset_file({chapter_path, lecture_index, asset});
+			try {
+				await download_asset_file({chapter_path, lecture_index, asset});
+			} catch (error) {
+				throw error;
+			}
 		}
 
 		content.shift();
