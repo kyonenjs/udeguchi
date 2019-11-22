@@ -39,12 +39,9 @@ const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 		const sorted_qualities = qualities.sort((el1, el2) => el1 - el2).reverse();
 
 		let quality_index = 0;
-		if (commander.quality) {
-			if (parseInt(commander.quality, 10)) {
-				if (sorted_qualities.includes(parseInt(commander.quality, 10))) {
-					quality_index = sorted_qualities.findIndex(i => i === parseInt(commander.quality, 10));
-				}
-			}
+		// ~~... String to Number
+		if (sorted_qualities.includes(~~commander.quality)) {
+			quality_index = sorted_qualities.findIndex(i => i === ~~commander.quality);
 		}
 
 		const best_video_quality = urls_location.find(v => v['label'] === `${sorted_qualities[quality_index]}`);
