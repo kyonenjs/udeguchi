@@ -35,11 +35,12 @@ const download_hls_video = async (url, video_name, chapter_path) => {
 
 const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 	try {
-		const qualities = urls_location.map(q => parseInt(q['label'], 10));
-		const sorted_qualities = qualities.sort((el1, el2) => el1 - el2).reverse();
+		// ~~... String to Number
+		const qualities = urls_location.map(q => ~~q['label']);
+		// Highest to lowest sorting
+		const sorted_qualities = qualities.sort((el1, el2) => el2 - el1);
 
 		let quality_index = 0;
-		// ~~... String to Number
 		if (sorted_qualities.includes(~~commander.quality)) {
 			quality_index = sorted_qualities.findIndex(i => i === ~~commander.quality);
 		}
