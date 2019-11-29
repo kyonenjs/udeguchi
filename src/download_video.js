@@ -35,19 +35,9 @@ const download_hls_video = async (url, video_name, chapter_path) => {
 
 const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 	try {
-		// ~~... String to Number
-		const qualities = urls_location.map(q => ~~q['label']);
-		// Highest to lowest sorting
-		const sorted_qualities = qualities.sort((el1, el2) => el2 - el1);
+		const video_quality = urls_location.find(({label}) => label === commander.quality || label === '1080') || -1;
 
-		let quality_index = 0;
-		if (sorted_qualities.includes(~~commander.quality)) {
-			quality_index = sorted_qualities.findIndex(i => i === ~~commander.quality);
-		}
-
-		const best_video_quality = urls_location.find(v => v['label'] === `${sorted_qualities[quality_index]}`);
-
-		const video_url = best_video_quality['file'];
+		const video_url = video_quality['file'] || urls_location[0]['file'];
 
 		await save_video(video_url, undefined, video_name, chapter_path);
 	} catch (error) {
