@@ -276,9 +276,9 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 			const start_again_lecture = lectures.findIndex(content => content['id'] === lecture_id);
 
 			await download_lecture_video(lectures.slice(start_again_lecture), course_path, chapter_path);
+		} else {
+			handle_error(error['message']);
 		}
-
-		handle_error(error['message']);
 	}
 };
 
