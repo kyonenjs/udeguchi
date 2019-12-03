@@ -33,18 +33,18 @@ const download_asset_file = async ({chapter_path, lecture_index, asset}) => {
 	if (fs.existsSync(asset_name_with_path)) {
 		console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
 	} else {
-		try {
-			await save_asset({
-				asset_url,
-				asset_name,
-				asset_id,
-				asset_size,
-				chapter_path,
-				lecture_index
-			});
-		} catch (error) {
+		await save_asset({
+			asset_url,
+			asset_name,
+			asset_id,
+			asset_size,
+			chapter_path,
+			lecture_index
+		}).catch(error => {
+			process.stderr.write(`\n    ${gray(inverse(' Asset '))}  ${asset_name}`);
+
 			throw error;
-		}
+		});
 	}
 };
 
@@ -91,11 +91,7 @@ const download_supplementary_assets = async (content, chapter_path, lecture_inde
 		}
 
 		if (asset['asset_type'] === 'File') {
-			try {
-				await download_asset_file({chapter_path, lecture_index, asset});
-			} catch (error) {
-				throw error;
-			}
+			await download_asset_file({chapter_path, lecture_index, asset});
 		}
 
 		content.shift();

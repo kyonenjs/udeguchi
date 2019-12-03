@@ -26,10 +26,20 @@ const create_chapter_folder = (content, course_path) => {
 	}
 };
 
-const download_lecture_article = (content, chapter_path) => {
-	const article_response_index = `${content[0]['object_index']}`;
-	const article_name = safe_name(`${article_response_index.padStart(3, '0')} ${content[0]['title']}.html`);
-	const article_body = content[0]['asset']['body'].replace(/\\\"/g, '"').replace(/\n+/g, '<br>');
+const download_lecture_article = async (lecture_content, chapter_path) => {
+	const {object_index, supplementary_assets, title, asset} = lecture_content;
+	const article_response_index = `${object_index}`.padStart(3, '0');
+
+	if (supplementary_assets.length) {
+		await download_supplementary_assets(
+			supplementary_assets,
+			chapter_path,
+			article_response_index
+		);
+	}
+
+	const article_name = safe_name(`${article_response_index} ${title}.html`);
+	const article_body = asset['body'].replace(/\\"/g, '"').replace(/\n+/g, '<br>');
 
 	const new_article_body = `<html><head><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/image.min.css"></head><body><div class="container"><div class="row"><div class="col-md-10 col-md-offset-1 ui image"><p class="lead">${article_body}</p></div></div></div></body></html>`;
 
@@ -38,14 +48,6 @@ const download_lecture_article = (content, chapter_path) => {
 	fs.writeFileSync(article_path, new_article_body);
 
 	console.log(`\n  ${magenta().inverse(' Lecture ')}  ${article_name}  ${green_bg('Done')}`);
-
-	if (content[0]['supplementary_assets'].length > 0) {
-		download_supplementary_assets(
-			content[0]['supplementary_assets'],
-			chapter_path,
-			article_response_index.padStart(3, '0')
-		);
-	}
 };
 
 const download_subtitles = (sub, video_name, chapter_path) => {
@@ -85,6 +87,15 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 	}
 };
 
+const retry_download = ({lecture_id, chapter_path}) => {
+	console.log(`  ${yellow('(fail to connect, retrying)')}`);
+
+	throw new Error(JSON.stringify({
+		lecture_id,
+		chapter_path
+	}));
+};
+
 const download_lecture_video = async (content, course_path, chapter_path) => {
 	if (!content.length) process.exit();
 
@@ -95,7 +106,18 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 	}
 
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Article') {
-		download_lecture_article(content, chapter_path);
+		const lecture_content = content[0];
+
+		try {
+			await download_lecture_article(lecture_content, chapter_path);
+		} catch (error) {
+			if (error['statusCode'] === 403) {
+				retry_download({lecture_id: lecture_content['id'], chapter_path});
+			}
+
+			throw error;
+		}
+
 		content.shift();
 		if (!content.length) return;
 	}
@@ -119,13 +141,10 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 				);
 			} catch (error) {
 				if (error['statusCode'] === 403) {
-					throw new Error(JSON.stringify({
-						lecture_id: video_lecture['id'],
-						chapter_path
-					}));
+					retry_download({lecture_id: video_lecture['id'], chapter_path});
 				}
 
-				throw new Error(error['message']);
+				throw error;
 			}
 		}
 
@@ -161,15 +180,10 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 				clearTimeout(check_spinner.stop);
 
 				if (error['message'] === '403') {
-					console.log(`  ${yellow('(fail to connect, retrying)')}`);
-
-					throw new Error(JSON.stringify({
-						lecture_id: video_lecture['id'],
-						chapter_path
-					}));
+					retry_download({lecture_id: video_lecture['id'], chapter_path});
 				}
 
-				throw new Error(error['message']);
+				throw error;
 			}
 		}
 	} else {
