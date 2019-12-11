@@ -90,10 +90,7 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 const retry_download = ({lecture_id, chapter_path}) => {
 	console.log(`  ${yellow('(fail to connect, retrying)')}`);
 
-	throw new Error(JSON.stringify({
-		lecture_id,
-		chapter_path
-	}));
+	throw new Error(JSON.stringify({lecture_id, chapter_path}));
 };
 
 const download_lecture_video = async (content, course_path, chapter_path) => {
