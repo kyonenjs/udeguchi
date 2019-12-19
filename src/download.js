@@ -16,9 +16,7 @@ const create_chapter_folder = (content, course_path) => {
 	const chapter_path = path.join(course_path, chapter_name);
 
 	try {
-		if (!fs.existsSync(chapter_path)) {
-			fs.mkdirSync(chapter_path);
-		}
+		if (!fs.existsSync(chapter_path)) fs.mkdirSync(chapter_path);
 
 		return chapter_path;
 	} catch (error) {
