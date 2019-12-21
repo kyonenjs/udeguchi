@@ -117,6 +117,39 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		if (!content.length) return;
 	}
 
+	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'E-Book') {
+		const ebook_lecture = content[0];
+		const {object_index, supplementary_assets} = ebook_lecture;
+		const lecture_index = `${object_index}`;
+
+		try {
+			// Download lecture E-book
+			await download_supplementary_assets(
+				[ebook_lecture],
+				chapter_path,
+				lecture_index.padStart(3, '0')
+			);
+
+			// Download assets in lecture
+			if (supplementary_assets.length) {
+				await download_supplementary_assets(
+					supplementary_assets,
+					chapter_path,
+					lecture_index.padStart(3, '0')
+				);
+			}
+		} catch (error) {
+			if (error['statusCode'] === 403) {
+				retry_download({lecture_id: ebook_lecture['id'], chapter_path});
+			}
+
+			throw error;
+		}
+
+		content.shift();
+		if (!content.length) return;
+	}
+
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Video') {
 		const video_lecture = content[0];
 
@@ -205,7 +238,9 @@ const filter_course_data = (data, start = commander.chapterStart, end = commande
 			(content['_class'] === 'lecture' &&
 				content['asset']['asset_type'] === 'Video') ||
 			(content['_class'] === 'lecture' &&
-				content['asset']['asset_type'] === 'Article')
+				content['asset']['asset_type'] === 'Article') ||
+			(content['_class'] === 'lecture' &&
+				content['asset']['asset_type'] === 'E-Book')
 		);
 	});
 
