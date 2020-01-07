@@ -28,7 +28,7 @@ const download_lecture_article = async (lecture_content, chapter_path) => {
 	const {object_index, supplementary_assets, title, asset} = lecture_content;
 	const article_response_index = `${object_index}`.padStart(3, '0');
 
-	if (supplementary_assets.length) {
+	if (supplementary_assets.length > 0) {
 		await download_supplementary_assets(
 			supplementary_assets,
 			chapter_path,
