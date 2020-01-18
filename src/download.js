@@ -131,7 +131,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 			);
 
 			// Download assets in lecture
-			if (supplementary_assets.length) {
+			if (supplementary_assets.length > 0) {
 				await download_supplementary_assets(
 					supplementary_assets,
 					chapter_path,
