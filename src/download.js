@@ -92,12 +92,12 @@ const retry_download = ({lecture_id, chapter_path}) => {
 };
 
 const download_lecture_video = async (content, course_path, chapter_path) => {
-	if (!content.length) process.exit();
+	if (content.length === 0) process.exit();
 
 	if (content[0]['_class'] === 'chapter') {
 		chapter_path = create_chapter_folder(content, course_path);
 		content.shift();
-		if (!content.length) return;
+		if (content.length === 0) return;
 	}
 
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Article') {
@@ -114,7 +114,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		}
 
 		content.shift();
-		if (!content.length) return;
+		if (content.length === 0) return;
 	}
 
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'E-Book') {
@@ -147,7 +147,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		}
 
 		content.shift();
-		if (!content.length) return;
+		if (content.length === 0) return;
 	}
 
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Video') {
@@ -156,7 +156,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 		const lecture_index = `${video_lecture['object_index']}`;
 		const video_name = safe_name(`${lecture_index.padStart(3, '0')} ${video_lecture['title']}`);
 
-		if (!commander.skipSub && video_lecture['asset']['captions'].length) {
+		if (!commander.skipSub && video_lecture['asset']['captions'].length > 0) {
 			download_subtitles(video_lecture['asset']['captions'], video_name, chapter_path);
 		}
 
