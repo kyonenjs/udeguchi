@@ -219,7 +219,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 	}
 };
 
-const filter_lecture = (data) => {
+const filter_lecture = data => {
 	const lecture_index = data.findIndex(l => l['_class'] === 'lecture' && l['object_index'] === parseInt(commander.lecture, 10));
 
 	if (lecture_index !== -1) {
