@@ -24,7 +24,7 @@ const download_asset_external_link = (chapter_path, lecture_index, asset) => {
 
 // Download files with link from Udemy
 const download_asset_file = async ({chapter_path, lecture_index, asset}) => {
-	const is_ebook = typeof asset['asset'] === 'object' && asset['asset']['asset_type'] === 'E-Book' || false;
+	const is_ebook = (typeof asset['asset'] === 'object' && asset['asset']['asset_type'] === 'E-Book') || false;
 	const [asset_name, asset_url] = is_ebook
 		? [
 			safe_name(`${lecture_index} ${asset['title']}.pdf`),
