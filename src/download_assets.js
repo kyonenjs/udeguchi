@@ -39,9 +39,9 @@ const download_asset_file = async ({chapter_path, lecture_index, asset}) => {
 	const asset_size = asset['file_size'];
 
 	if (fs.existsSync(asset_name_with_path)) {
-		is_ebook
-		? console.log(`\n  ${magenta().inverse(' Lecture ')}  ${asset_name}  ${yellow('(already downloaded)')}`)
-		: console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
+		is_ebook ?
+			console.log(`\n  ${magenta().inverse(' Lecture ')}  ${asset_name}  ${yellow('(already downloaded)')}`) :
+			console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
 	} else {
 		await save_asset({
 			is_ebook,
