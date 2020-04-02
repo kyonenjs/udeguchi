@@ -52,9 +52,9 @@ const download_asset_file = async ({chapter_path, lecture_index, asset}) => {
 			chapter_path,
 			lecture_index
 		}).catch(error => {
-			is_ebook
-			? process.stderr.write(`\n  ${magenta().inverse(' Lecture ')}  ${asset_name}`)
-			: process.stderr.write(`\n    ${gray(inverse(' Asset '))}  ${asset_name}`);
+			is_ebook ?
+				process.stderr.write(`\n  ${magenta().inverse(' Lecture ')}  ${asset_name}`) :
+				process.stderr.write(`\n    ${gray(inverse(' Asset '))}  ${asset_name}`);
 
 			throw error;
 		});
