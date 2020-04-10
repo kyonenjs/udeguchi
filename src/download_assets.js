@@ -63,9 +63,9 @@ const download_asset_file = async ({chapter_path, lecture_index, asset}) => {
 
 const save_asset = ({is_ebook, asset_url, asset_name, asset_id, asset_size, chapter_path, lecture_index}) => {
 	const asset_name_with_path = path.join(chapter_path, asset_name);
-	const downloading_asset_name_with_path = asset_size < 100000
-		? asset_name_with_path
-		: path.join(chapter_path, `${lecture_index} downloading asset ${asset_id}`);
+	const downloading_asset_name_with_path = asset_size < 100000 ?
+		asset_name_with_path :
+		path.join(chapter_path, `${lecture_index} downloading asset ${asset_id}`);
 
 	return new Promise((resolve, reject) => {
 		const stream = got.stream(asset_url, {
