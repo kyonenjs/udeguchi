@@ -91,7 +91,7 @@ const retry_download = ({lecture_id, chapter_path}) => {
 	throw new Error(JSON.stringify({lecture_id, chapter_path}));
 };
 
-const download_lecture_video = async (content, course_path, chapter_path) => {
+const download_lecture_video = async (content, course_path, chapter_path, auth_headers) => {
 	if (content.length === 0) process.exit();
 
 	if (content[0]['_class'] === 'chapter') {
@@ -184,7 +184,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 					console.log(`\n  ${magenta().inverse(' Lecture ')}  ${video_name}  ${yellow('(already downloaded)')}`);
 
 					content.shift();
-					return await download_lecture_video(content, course_path, chapter_path);
+					return await download_lecture_video(content, course_path, chapter_path, auth_headers);
 				}
 
 				console.log();
@@ -195,7 +195,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 				const hls_link = video_lecture['asset']['hls_url'];
 
 				if (hls_link) {
-					await download_hls_video(`https${hls_link.slice(5)}`, video_name, chapter_path);
+					await download_hls_video(`https${hls_link.slice(5)}`, video_name, chapter_path, auth_headers);
 				} else {
 					await download_mp4_video(urls_location, video_name, chapter_path);
 				}
@@ -203,7 +203,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 				clearTimeout(check_spinner.stop);
 
 				content.shift();
-				await download_lecture_video(content, course_path, chapter_path);
+				await download_lecture_video(content, course_path, chapter_path, auth_headers);
 			} catch (error) {
 				clearTimeout(check_spinner.stop);
 
@@ -215,7 +215,7 @@ const download_lecture_video = async (content, course_path, chapter_path) => {
 			}
 		}
 	} else {
-		await download_lecture_video(content, course_path, chapter_path);
+		await download_lecture_video(content, course_path, chapter_path, auth_headers);
 	}
 };
 
@@ -306,7 +306,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 		console.log(`  ${green_bg('Done')}`);
 		clearTimeout(check_spinner.stop);
 
-		await download_lecture_video(lectures, course_path);
+		await download_lecture_video(lectures, course_path, null, auth_headers);
 	} catch (error) {
 		if (error['statusCode'] === 502) {
 			await download_course_multi_requests(`${course_content_url}200`, {auth_headers, course_path}, check_spinner);
@@ -319,7 +319,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 
 			const start_again_lecture = lectures.findIndex(content => content['id'] === lecture_id);
 
-			await download_lecture_video(lectures.slice(start_again_lecture), course_path, chapter_path);
+			await download_lecture_video(lectures.slice(start_again_lecture), course_path, chapter_path, auth_headers);
 		} else {
 			handle_error(error['message']);
 		}
@@ -332,7 +332,7 @@ const download_course_multi_requests = async (course_content_url, {auth_headers,
 			console.log(`  ${green_bg('Done')}`);
 			clearTimeout(check_spinner.stop);
 
-			await download_lecture_video(filter_course_data(previous_data), course_path);
+			await download_lecture_video(filter_course_data(previous_data), course_path, null, auth_headers);
 		}
 
 		const response = await get_request(course_content_url, auth_headers);

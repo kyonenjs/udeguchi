@@ -6,14 +6,15 @@ const {yellow} = require('kleur');
 const {get_request, handle_error, green_bg} = require('./utilities.js');
 const {headers: original_headers} = require('./references.js');
 
-const download_hls_video = async (url, video_name, chapter_path) => {
+const download_hls_video = async (url, video_name, chapter_path, auth_headers) => {
 	try {
-		const response = await get_request(url, {'User-Agent': original_headers['User-Agent']});
+		const response = await get_request(url, {'User-Agent': original_headers['User-Agent'], ...auth_headers});
 
 		const video_resolutions = response.body.match(/(?:hls_)(\d{3,4})/g).map(r => r.slice(4));
 
 		let video_quality_index = 0;
 		let quality_position = ' ';
+		const auth_header_hls = `-headers "Authorization: ${auth_headers.Authorization}" `;
 		if (commander.quality) {
 			video_quality_index = video_resolutions.findIndex(r => r === `${commander.quality}`);
 			if (video_quality_index !== -1) {
@@ -23,7 +24,7 @@ const download_hls_video = async (url, video_name, chapter_path) => {
 			}
 		}
 
-		await save_video(url, quality_position, video_name, chapter_path);
+		await save_video(url, quality_position, video_name, chapter_path, auth_header_hls);
 	} catch (error) {
 		if (error['statusCode'] === 403) {
 			throw new Error('403');
@@ -45,7 +46,7 @@ const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 	}
 };
 
-const save_video = (url, quality_position, video_name, chapter_path) => {
+const save_video = (url, quality_position, video_name, chapter_path, auth_header_hls) => {
 	if (!url) {
 		console.log(`  ${yellow('(no download link)')}`);
 		return new Promise(resolve => resolve('Done'));
@@ -54,7 +55,7 @@ const save_video = (url, quality_position, video_name, chapter_path) => {
 	const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 
 	const download_command = quality_position
-		? `-y -i "${url}"${quality_position}-acodec copy -bsf:a aac_adtstoasc -vcodec`
+		? `${auth_header_hls} -y -i "${url}"${quality_position}-acodec copy -bsf:a aac_adtstoasc -vcodec`
 		: `-headers "User-Agent: ${original_headers['User-Agent']}" -y -i "${url}" -c`;
 
 	return new Promise((resolve, reject) => {
