@@ -192,7 +192,7 @@ const download_lecture_video = async (content, course_path, chapter_path, auth_h
 				render_spinner(check_spinner, `${magenta().inverse(' Lecture ')}  ${video_name}`);
 
 				const urls_location = video_lecture['asset']['url_set']['Video'];
-				const hls_link = video_lecture['asset']['hls_url'];
+				const hls_link = commander.hls ? video_lecture['asset']['hls_url'] : null;
 
 				if (hls_link) {
 					await download_hls_video(`https${hls_link.slice(5)}`, video_name, chapter_path, auth_headers);

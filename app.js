@@ -25,6 +25,7 @@ commander
 	.option('--chapter-start <chapterNumber>', 'Start download at this chapter')
 	.option('--chapter-end <chapterNumber>', 'Stop download at this chapter (not include)')
 	.option('--lecture <lectureNumber>', 'Download this lecture only')
+	.option('--no-hls', 'Use normal https server to download video')
 	.parse(process.argv);
 
 const {handle_error, extract_course_name} = require('./src/utilities.js');

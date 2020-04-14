@@ -126,6 +126,7 @@ $ node app.js -k cookie.txt https://www.udemy.com/course-name/
 |`--chapter-start`     |Start download at this chapter                     |
 |`--chapter-end`       |Stop download at this chapter (not include)        |
 |`--lecture`           |Download this lecture only                         |
+|`--no-hls`            |Use normal https server to download video          |
 
 ### `That's good, but how to use it ?`
 
@@ -240,6 +241,16 @@ $ node app.js --chapter-end 7 https://www.udemy.com/course-name/
 
 ```
 $ node app.js --lecture 12 https://www.udemy.com/course-name/
+```
+> &nbsp;  
+> &nbsp; 
+
+|Option||
+|:---:|---|
+|`--no-hls`|Use normal https server to download video.|
+
+```
+$ node app.js --no-hls https://www.udemy.com/course-name/
 ```
 
 ## License
