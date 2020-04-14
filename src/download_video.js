@@ -14,7 +14,7 @@ const download_hls_video = async (url, video_name, chapter_path, auth_headers) =
 
 		let video_quality_index = 0;
 		let quality_position = ' ';
-		const auth_header_hls = `-headers "Authorization: ${auth_headers.Authorization}" `;
+		const auth_header_hls = `-headers "Authorization: ${auth_headers.Authorization}"`;
 		if (commander.quality) {
 			video_quality_index = video_resolutions.findIndex(r => r === `${commander.quality}`);
 			if (video_quality_index !== -1) {
