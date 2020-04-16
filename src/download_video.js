@@ -8,13 +8,13 @@ const {headers: original_headers} = require('./references.js');
 
 const download_hls_video = async (url, video_name, chapter_path, auth_headers) => {
 	try {
-		const response = await get_request(url, {'User-Agent': original_headers['User-Agent'], ...auth_headers});
+		const response = await get_request(url, {'User-Agent': 'okhttp/3.11.0', ...auth_headers});
 
 		const video_resolutions = response.body.match(/(?:RESOLUTION=)(\d+)x(\d+)/g).map(r => r.match(/x(\d+)/)[1]);
 
 		let video_quality_index = 0;
 		let quality_position = ' ';
-		const auth_header_hls = `-headers "Authorization: ${auth_headers.Authorization}"`;
+		const auth_header_hls = `-user-agent "okhttp/3.11.0" -headers "Authorization: ${auth_headers.Authorization}"`;
 		if (commander.quality) {
 			video_quality_index = video_resolutions.findIndex(r => r === `${commander.quality}`);
 			if (video_quality_index !== -1) {
