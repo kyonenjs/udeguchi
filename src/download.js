@@ -70,11 +70,14 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 
 			// From @wopen/vtt2srt npm package
 			const data = response['body']
-				.replace(/^WEBVTT/g, '')
+				.trim()
+				.replace(/^WEBVTT/, '')
+				.replace(/\r\n/g, '\n')
+				.replace(/<v.*>(.*)<\/v>/g, '$1')
 				.replace(/(\d\d:\d\d)\.(\d\d\d)\b/g, '$1,$2')
 				.replace(/(\n|\s)(\d\d:\d\d,\d\d\d)(\s|\n)/g, '$100:$2$3')
-				.trim()
-				.split(/(?:\r\n\r\n|\n\n|\r\r)/g)
+				.split(/\n\n(?:\d+\n)?/g)
+				.slice(1,)
 				.map((piece, i) => `${i + 1}\n${piece}\n\n`)
 				.join('');
 
