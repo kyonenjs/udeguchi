@@ -311,7 +311,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 
 		await download_lecture_video(lectures, course_path, null, auth_headers);
 	} catch (error) {
-		if (error['statusCode'] === 502) {
+		if (error['statusCode'] === 502 || error['statusCode'] === 503) {
 			await download_course_multi_requests(`${course_content_url}200`, {auth_headers, course_path}, check_spinner);
 		} else if (error['code'] === 'ENOTFOUND') {
 			handle_error('Unable to connect to Udemy server');
