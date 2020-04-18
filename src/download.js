@@ -61,6 +61,10 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 		if (lang) sub = [lang];
 	}
 
+	if (fs.existsSync(path.join(chapter_path, `${video_name}.${sub[0]['locale_id']}.srt`))) {
+		return;
+	}
+
 	try {
 		return Promise.all(sub.map(async subtitle => {
 			const subtitle_url = subtitle['url'];
