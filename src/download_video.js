@@ -10,7 +10,7 @@ const download_hls_video = async (url, video_name, chapter_path, auth_headers) =
 	try {
 		const response = await get_request(url, {'User-Agent': 'okhttp/3.11.0', ...auth_headers});
 
-		const video_resolutions = response.body.match(/(?:RESOLUTION=)(\d+)x(\d+)/g).map(r => r.match(/x(\d+)/)[1]);
+		const video_resolutions = response.body.match(/RESOLUTION=(\d+)x(\d+)/g).map(r => r.match(/x(\d+)/)[1]);
 
 		let video_quality_index = 0;
 		let quality_position = ' ';
