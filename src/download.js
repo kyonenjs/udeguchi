@@ -348,13 +348,13 @@ const download_course_multi_requests = async (course_content_url, {auth_headers,
 			clearTimeout(check_spinner.stop);
 
 			await download_lecture_video(filter_course_data(previous_data), course_path, null, auth_headers);
+		} else {
+			const response = await get_request(course_content_url, auth_headers);
+
+			const data = JSON.parse(response.body);
+			previous_data = [...previous_data, ...data['results']];
+			await download_course_multi_requests(data['next'], {auth_headers, course_path}, check_spinner, previous_data);
 		}
-
-		const response = await get_request(course_content_url, auth_headers);
-
-		const data = JSON.parse(response.body);
-		previous_data = [...previous_data, ...data['results']];
-		await download_course_multi_requests(data['next'], {auth_headers, course_path}, check_spinner, previous_data);
 	} catch (error) {
 		handle_error(error['message']);
 	}
