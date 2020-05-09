@@ -84,9 +84,9 @@ const save_asset = ({is_ebook, asset_url, asset_name, asset_id, asset_size, chap
 						});
 					}
 
-					is_ebook
-					? console.log(`\n  ${magenta().inverse(' Lecture ')}  ${asset_name}  ${green_bg('Done')}`)
-					: console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
+					is_ebook ?
+						console.log(`\n  ${magenta().inverse(' Lecture ')}  ${asset_name}  ${green_bg('Done')}`) :
+						console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
 					resolve('Finish');
 				});
 			})
