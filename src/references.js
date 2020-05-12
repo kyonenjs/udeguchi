@@ -24,7 +24,7 @@ const headers = {
 	'accept-encoding': 'gzip',
 	'accept-language': 'en_US',
 	'user-agent': 'Android UdemyAndroid (phone)'
-}
+};
 
 const login_url =
 	'https://www.udemy.com/api-2.0/auth/udemy-auth/login/?fields[user]=title,image_100x100,is_fraudster,num_subscribed_courses,name,initials,has_instructor_intent,permissions,num_published_courses,access_token';
