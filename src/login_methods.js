@@ -15,15 +15,15 @@ const login_with_username_password = async (username, password) => {
 
 	try {
 		const post_body = {
-			'email': username,
-			'password': password,
-			'upow': upow(username)
+			email: username,
+			password,
+			upow: upow(username)
 		};
 
 		const post_data = await got(login_url, {
 			headers,
 			body: post_body,
-			form: true,
+			form: true
 		});
 
 		const access_token = JSON.parse(post_data.body).access_token;
