@@ -1,33 +1,32 @@
 const fs = require('fs');
 const {
 	handle_error,
-	get_request,
-	post_request,
 	find_access_token,
-	polish_cookies,
 	create_auth_headers,
 	create_cached_cookie,
 	green_bg
 } = require('./utilities.js');
 const {headers, login_url} = require('./references.js');
+const upow = require('./upow.js');
+const got = require('got');
 
 const login_with_username_password = async (username, password) => {
 	console.log(`\n\n${green_bg('Logging with username and password')}\n`);
 
 	try {
-		const get_data = await get_request(login_url, headers);
-
-		const csrf_token = get_data['body'].match(/(?:csrfmiddlewaretoken(?:['"]) value=(?:['"]))(\w{64})/)[1];
 		const post_body = {
 			'email': username,
 			'password': password,
-			'csrfmiddlewaretoken': csrf_token
+			'upow': upow(username)
 		};
-		const post_cookie = polish_cookies(get_data['headers']['set-cookie']);
 
-		const post_data = await post_request(login_url, post_body, post_cookie);
+		const post_data = await got(login_url, {
+			headers,
+			body: post_body,
+			form: true,
+		});
 
-		const access_token = find_access_token(polish_cookies(post_data['headers']['set-cookie']));
+		const access_token = JSON.parse(post_data.body).access_token;
 
 		create_cached_cookie(access_token, username.toLowerCase());
 
@@ -37,7 +36,7 @@ const login_with_username_password = async (username, password) => {
 			handle_error('Unable to connect to Udemy server');
 		}
 
-		handle_error(error['message']);
+		handle_error(`${error['message']}\n${error['body']}`);
 	}
 };
 

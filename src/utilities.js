@@ -4,25 +4,10 @@ const url = require('url');
 const readline = require('readline');
 const got = require('got');
 const {red, yellow, green, cyan, inverse} = require('kleur');
-const {headers} = require('./references.js');
 
 const get_request = (url, get_headers) => {
 	return got(url, {headers: get_headers});
 };
-
-const post_request = (url, post_body, cookie) => {
-	const post_headers = JSON.parse(JSON.stringify(headers));
-	post_headers['Cookie'] = cookie;
-	return got(url, {
-		headers: post_headers,
-		form: true,
-		body: post_body,
-		followRedirect: false
-	});
-};
-
-// Convert set-cookie array in response's headers to string
-const polish_cookies = cookie => cookie.map(c => c.substr(0, c.indexOf(';'))).reduce((a, b) => a + '; ' + b);
 
 const find_access_token = cookie => {
 	try {
@@ -136,8 +121,6 @@ const safe_name = name => name.replace(/[/\\?%*:|"<>$]/g, '_').replace(/^\.+|\.+
 
 module.exports = {
 	get_request,
-	post_request,
-	polish_cookies,
 	find_access_token,
 	handle_error,
 	create_auth_headers,
