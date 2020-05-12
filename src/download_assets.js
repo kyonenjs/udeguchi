@@ -77,7 +77,7 @@ const save_asset = ({is_ebook, asset_url, asset_name, asset_id, asset_size, chap
 
 				res.on('end', () => {
 					if (asset_size > 100000 || !asset_size) {
-						fs.rename(downloading_asset_name_with_path, asset_name_with_path, (error) => {
+						fs.rename(downloading_asset_name_with_path, asset_name_with_path, error => {
 							if (error) {
 								handle_error(`Unable to rename asset ${yellow(asset_name)}`);
 							}
@@ -91,7 +91,7 @@ const save_asset = ({is_ebook, asset_url, asset_name, asset_id, asset_size, chap
 				});
 			})
 			.resume()
-			.on('error', (error) => {
+			.on('error', error => {
 				reject(error);
 			});
 	});
