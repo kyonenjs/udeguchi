@@ -9,7 +9,9 @@ const {login_with_username_password} = require('./login_methods.js');
 
 const create_course_folder = (course_name, destination = process.cwd()) => {
 	try {
-		if (commander.output) destination = path.resolve(commander.output);
+		if (commander.output) {
+			destination = path.resolve(commander.output);
+		}
 
 		if (!fs.existsSync(`${path.join(destination, course_name)}`)) {
 			fs.mkdirSync(`${path.join(destination, course_name)}`);
@@ -143,7 +145,11 @@ const find_course = async (headers, course_url_name) => {
 const find_owned_course = (course_name, auth_headers) => {
 	const {is_draft, course_name_in_url} = course_name;
 
-	is_draft ? find_draft_course(auth_headers, course_name_in_url) : find_course(auth_headers, course_name_in_url);
+	if (is_draft) {
+		find_draft_course(auth_headers, course_name_in_url);
+	} else {
+		find_course(auth_headers, course_name_in_url);
+	}
 };
 
 module.exports = {
