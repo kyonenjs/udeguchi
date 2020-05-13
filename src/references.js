@@ -5,12 +5,12 @@ const commander = require('commander');
 if (!commander.args[0]) {
 	console.log(`\n${inverse(red(' Error '))} Missing course URL`);
 	process.exit();
-} else if (!commander.args[0].match(/(?:^https:\/\/)(.+)(?:\.udemy\.com\/.+)/i)) {
+} else if (!commander.args[0].match(/^ht{2}ps:\/{2}(.+)\.udemy\.com\/.+/i)) {
 	console.log(`\n${inverse(red(' Error '))} Course URL is not valid`);
 	process.exit();
 }
 
-let sub_domain = url.parse(commander.args[0].toLowerCase())['hostname'].match(/(^.+)(?:\.udemy\.com)/);
+let sub_domain = new url.URL(commander.args[0].toLowerCase())['hostname'].match(/(^.+)\.udemy\.com/);
 
 if (!sub_domain) {
 	console.log(`\n${inverse(red(' Error '))} Course URL is not valid`);
