@@ -11,28 +11,24 @@ const get_request = (url, get_headers) => {
 
 const find_access_token = cookie => {
 	try {
-		return cookie.match(/(?:access_token=)(\w{40})/)[1];
+		return cookie.match(/access_token=(\w{40})/)[1];
 	} catch (error) {
 		handle_error('Login failed');
 	}
 };
 
-const err_msg = msg => `${inverse(red(' Error '))} ${msg}`;
-
 const create_auth_headers = access_token => {
-	return {
-		'Authorization': `Bearer ${access_token}`
-	};
+	return {Authorization: `Bearer ${access_token}`};
 };
 
 const handle_error = error_message => {
-	console.log(`\n\n${err_msg(error_message)}`);
+	console.log(`\n\n${inverse(red(' Error '))} ${error_message}`);
 	process.exit();
 };
 
 const extract_course_name = course_url => {
 	try {
-		const course_pathname = url.parse(course_url)['pathname'].split('/');
+		const course_pathname = new url.URL(course_url)['pathname'].split('/');
 		const course_name_in_url =
 			course_pathname[1] !== 'course' &&
 			course_pathname[1] !== 'draft' &&
