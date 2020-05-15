@@ -1,7 +1,13 @@
 const fs = require('fs');
 const path = require('path');
+const stream = require('stream');
+const {promisify} = require('util');
+const pipeline = promisify(stream.pipeline);
+
 const commander = require('commander');
 const {yellow, magenta, red} = require('kleur');
+const got = require('got');
+
 const {sub_domain} = require('./references.js');
 const {get_request, handle_error, render_spinner, green_bg, cyan_bg, safe_name} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
@@ -95,6 +101,41 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 	}
 };
 
+const download_lecture_ebook = async ({content, chapter_path}) => {
+	const {object_index, supplementary_assets, title, asset} = content;
+	const lecture_index = `${object_index}`.padStart(3, '0');
+	const lecture_name = safe_name(`${lecture_index} ${title}.pdf`);
+	const lecture_url = asset['url_set']['E-Book'][0]['file'];
+	const lecture_path = path.join(chapter_path, lecture_name);
+
+	if (supplementary_assets.length > 0) {
+		await download_supplementary_assets(
+			supplementary_assets,
+			chapter_path,
+			lecture_index
+		);
+	}
+
+	try {
+		fs.accessSync(lecture_path);
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			await pipeline(
+				got.stream(lecture_url, {headers: {'User-Agent': 'okhttp/3.12.1'}}),
+				fs.createWriteStream(lecture_path)
+			).catch(error => {
+				process.stderr.write(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}`);
+
+				throw error;
+			});
+
+			console.log(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}  ${green_bg('Done')}`);
+		}
+	}
+
+	console.log(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}  ${yellow('(already downloaded)')}`);
+};
+
 const retry_download = ({lecture_id, chapter_path}) => {
 	console.log(`  ${yellow('(fail to connect, retrying)')}`);
 
@@ -130,29 +171,14 @@ const download_lecture_video = async (content, course_path, chapter_path, auth_h
 	}
 
 	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'E-Book') {
-		const ebook_lecture = content[0];
-		const {object_index, supplementary_assets} = ebook_lecture;
-		const lecture_index = `${object_index}`;
-
 		try {
-			// Download lecture E-book
-			await download_supplementary_assets(
-				[ebook_lecture],
-				chapter_path,
-				lecture_index.padStart(3, '0')
-			);
-
-			// Download assets in lecture
-			if (supplementary_assets.length > 0) {
-				await download_supplementary_assets(
-					supplementary_assets,
-					chapter_path,
-					lecture_index.padStart(3, '0')
-				);
-			}
+			await download_lecture_ebook({
+				content: content[0],
+				chapter_path
+			});
 		} catch (error) {
 			if (error['statusCode'] === 403) {
-				retry_download({lecture_id: ebook_lecture['id'], chapter_path});
+				retry_download({lecture_id: content[0]['id'], chapter_path});
 			}
 
 			throw error;
