@@ -7,21 +7,24 @@ const {get_request, handle_error, render_spinner, green_bg, cyan_bg, safe_name} 
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 
-const create_chapter_folder = (content, course_path) => {
-	const chapter_response_index = `${content[0]['object_index']}`;
-	const chapter_name = safe_name(`${chapter_response_index.padStart(2, '0')} ${content[0]['title']}`);
+const create_chapter_folder = (chapter_index, chapter_name, course_path) => {
+	chapter_name = safe_name(`${chapter_index.padStart(2, '0')} ${chapter_name}`);
 
 	console.log(`\n${green_bg('Chapter')}  ${chapter_name}`);
 
 	const chapter_path = path.join(course_path, chapter_name);
 
 	try {
-		if (!fs.existsSync(chapter_path)) fs.mkdirSync(chapter_path);
-
-		return chapter_path;
+		fs.accessSync(chapter_path);
 	} catch (error) {
-		handle_error(error['message']);
+		if (error.code === 'ENOENT') {
+			fs.mkdirSync(chapter_path);
+		} else {
+			handle_error(error['message']);
+		}
 	}
+
+	return chapter_path;
 };
 
 const download_lecture_article = async (lecture_content, chapter_path) => {
@@ -102,7 +105,9 @@ const download_lecture_video = async (content, course_path, chapter_path, auth_h
 	if (content.length === 0) process.exit();
 
 	if (content[0]['_class'] === 'chapter') {
-		chapter_path = create_chapter_folder(content, course_path);
+		const {object_index: chapter_index, title: chapter_name} = content[0];
+
+		chapter_path = create_chapter_folder(`${chapter_index}`, chapter_name, course_path);
 		content.shift();
 		if (content.length === 0) return;
 	}
