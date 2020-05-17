@@ -34,14 +34,14 @@ const {login_with_username_password, login_with_cookie} = require('./src/login_m
 const {use_cached_cookie} = require('./src/login_cached.js');
 
 if (commander.chapterStart && !(parseInt(commander.chapterStart, 10) > 0)) {
-	handle_error('Invalid chapter');
+	handle_error({error: new Error('Invalid chapter')});
 }
 
 if (!commander.chapterStart && commander.chapterEnd && !(parseInt(commander.chapterEnd, 10) > 1)) {
-	handle_error('--chapter-end should be greater than 1');
+	handle_error({error: new Error('--chapter-end should be greater than 1')});
 }
 
-commander.lecture && !(parseInt(commander.lecture, 10) > 0) && handle_error('Invalid lecture number');
+commander.lecture && !(parseInt(commander.lecture, 10) > 0) && handle_error({error: new Error('Invalid lecture number')});
 
 const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 
@@ -49,7 +49,7 @@ const course_url = commander.args[0];
 
 if (fs.existsSync(path.join(process.cwd(), ffmpeg_name))) {
 	if (commander.output && !fs.existsSync(commander.output)) {
-		handle_error(`Location ${yellow(path.resolve(commander.output))} does not exist!`);
+		handle_error({error: new Error(`Location ${yellow(path.resolve(commander.output))} does not exist!`)});
 	}
 
 	if (!commander.username && !commander.password && !commander.cookie) {
@@ -100,5 +100,5 @@ if (fs.existsSync(path.join(process.cwd(), ffmpeg_name))) {
 		find_owned_course(extract_course_name(course_url), auth_headers);
 	}
 } else {
-	handle_error('ffmpeg not found\nPlease follow: https://github.com/kyonenjs/udeguchi#Require');
+	handle_error({error: new Error('ffmpeg not found. Please follow: https://github.com/kyonenjs/udeguchi#Require')});
 }

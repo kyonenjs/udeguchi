@@ -24,7 +24,7 @@ const create_course_folder = (course_name, destination = process.cwd()) => {
 
 		return `${path.join(destination, course_name)}`;
 	} catch (error) {
-		handle_error(error['message']);
+		handle_error({error});
 	}
 };
 
@@ -48,12 +48,12 @@ const find_draft_course = async (headers, course_id) => {
 				return find_owned_course(extract_course_name(commander.args[0]), auth_headers);
 			}
 
-			handle_error('You do not owned this course');
+			handle_error({error, message: 'You do not owned this course'});
 		} else if (error['code'] === 'ENOTFOUND') {
-			handle_error('Unable to connect to Udemy server');
+			handle_error({error, message: 'Unable to connect to Udemy server'});
 		}
 
-		handle_error(error['message']);
+		handle_error({error});
 	}
 };
 
@@ -84,7 +84,7 @@ const find_course_multi_requests = async (subscribed_url, headers, course_url_na
 
 		await find_course_multi_requests(data['next'], headers, course_url_name);
 	} catch (error) {
-		handle_error(error['message']);
+		handle_error({error});
 	}
 };
 
@@ -110,7 +110,7 @@ const find_course = async (headers, course_url_name) => {
 				clearTimeout(check_spinner.stop);
 
 				if (!course_found) {
-					handle_error('You do not own this course');
+					handle_error({error: new Error('You do not own this course')});
 				}
 			}
 		}
@@ -133,14 +133,14 @@ const find_course = async (headers, course_url_name) => {
 				return find_owned_course(extract_course_name(commander.args[0]), auth_headers);
 			}
 
-			handle_error('Cookie is not valid');
+			handle_error({error, message: 'Cookie is not valid'});
 		} else if (error['message'].includes('Cannot read property')) {
-			handle_error('Course URL is not valid');
+			handle_error({error, message: 'Course URL is not valid'});
 		} else if (error['code'] === 'ENOTFOUND') {
-			handle_error('Unable to connect to Udemy server');
+			handle_error({error, message: 'Unable to connect to Udemy server'});
 		}
 
-		handle_error('You do not owned the course');
+		handle_error({error, message: 'You do not owned the course'});
 	}
 };
 

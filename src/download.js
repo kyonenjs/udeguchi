@@ -28,7 +28,7 @@ const create_chapter_folder = (chapter_index, chapter_name, course_path) => {
 		if (error.code === 'ENOENT') {
 			fs.mkdirSync(chapter_path);
 		} else {
-			handle_error(error['message']);
+			handle_error({error});
 		}
 	}
 
@@ -325,7 +325,7 @@ const filter_lecture = data => {
 		return [chapter_with_lecture, data[lecture_index]];
 	}
 
-	handle_error('Unable to find the lecture');
+	handle_error({error: new Error('Unable to find the lecture')});
 };
 
 const filter_course_data = (data, start = commander.chapterStart, end = commander.chapterEnd) => {
@@ -375,7 +375,7 @@ const filter_course_data = (data, start = commander.chapterStart, end = commande
 	}
 
 	if (start && parseInt(start, 10) > chapters.length) {
-		handle_error(`Course only have ${yellow(chapters.length)} chapters but you start at chapter ${red(start)}`);
+		handle_error({error: new Error(`Course only have ${yellow(chapters.length)} chapters but you start at chapter ${red(start)}`)});
 	}
 
 	if (end && parseInt(end, 10) <= chapters.length) {
@@ -410,7 +410,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 		if (error['statusCode'] === 502 || error['statusCode'] === 503) {
 			await download_course_multi_requests(`${course_content_url}200`, {auth_headers, course_path}, check_spinner);
 		} else if (error['code'] === 'ENOTFOUND') {
-			handle_error('Unable to connect to Udemy server');
+			handle_error({error, message: 'Unable to connect to Udemy server'});
 		} else if (error['message'].includes('lecture_id')) {
 			const {lecture_id, chapter_path} = JSON.parse(error['message']);
 
@@ -420,7 +420,7 @@ const download_course_one_request = async (course_content_url, auth_headers, cou
 
 			await download_lecture_video(lectures.slice(start_again_lecture), course_path, chapter_path, auth_headers);
 		} else {
-			handle_error(error['message']);
+			handle_error({error});
 		}
 	}
 };
@@ -440,7 +440,7 @@ const download_course_multi_requests = async (course_content_url, {auth_headers,
 			await download_lecture_video(filter_course_data(previous_data), course_path, null, auth_headers);
 		}
 	} catch (error) {
-		handle_error(error['message']);
+		handle_error({error});
 	}
 };
 

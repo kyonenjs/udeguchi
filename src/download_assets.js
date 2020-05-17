@@ -66,7 +66,7 @@ const save_asset = ({asset_url, asset_name, asset_id, asset_size, chapter_path, 
 					if (asset_size > 100000 || !asset_size) {
 						fs.rename(downloading_asset_name_with_path, asset_name_with_path, error => {
 							if (error) {
-								handle_error(`Unable to rename asset ${yellow(asset_name)}`);
+								handle_error({error, message: `Unable to rename asset ${yellow(asset_name)}`});
 							}
 						});
 					}

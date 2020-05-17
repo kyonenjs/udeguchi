@@ -3,7 +3,7 @@ const path = require('path');
 const url = require('url');
 const readline = require('readline');
 const got = require('got');
-const {red, yellow, green, cyan, inverse} = require('kleur');
+const {red, yellow, green, cyan, grey} = require('kleur');
 
 const get_request = (url, get_headers) => {
 	return got(url, {headers: get_headers});
@@ -13,7 +13,7 @@ const find_access_token = cookie => {
 	try {
 		return cookie.match(/access_token=(\w{40})/)[1];
 	} catch (error) {
-		handle_error('Login failed');
+		handle_error({error, message: 'Login failed'});
 	}
 };
 
@@ -21,8 +21,34 @@ const create_auth_headers = access_token => {
 	return {Authorization: `Bearer ${access_token}`};
 };
 
-const handle_error = error_message => {
-	console.log(`\n\n${inverse(red(' Error '))} ${error_message}`);
+const handle_error = ({error, message}) => {
+	const cwd = process.cwd() + path.sep;
+
+	if (message) {
+		message = `${message}\n${grey().inverse(' INFO ')} ${error.message}`;
+	} else {
+		message = error.message;
+	}
+
+	// From nuxt-contrib/consola
+	const lines = '\n' + error.stack
+		.split('\n')
+		.splice(1)
+		.map(l => l
+			.trim()
+			.replace('file://', '')
+			.replace(cwd, '')
+		)
+		.map(line => '  ' + line
+			.replace(/^at +/, m => grey(m))
+			.replace(/\((.+)\)/, (_, m) => `(${cyan(m)})`)
+		)
+		.join('\n');
+
+	console.log(`\n\n${red().inverse(' ERROR ')} ${message}`);
+
+	console.log(lines);
+
 	process.exit();
 };
 
@@ -36,7 +62,7 @@ const extract_course_name = course_url => {
 				? course_pathname[1]
 				: course_pathname[2];
 		if (!course_name_in_url) {
-			handle_error('Course URL is not valid');
+			handle_error({error: new Error('Course URL is not valid')});
 		}
 
 		if (course_pathname[1] === 'draft') {
@@ -51,7 +77,7 @@ const extract_course_name = course_url => {
 			course_name_in_url
 		};
 	} catch (error) {
-		handle_error(error['message']);
+		handle_error({error});
 	}
 };
 
@@ -90,7 +116,7 @@ const create_cached_cookie = (access_token, username) => {
 			console.log(`${green_bg('Updated cached cookie')}`);
 		}
 	} catch (error) {
-		handle_error(error['message']);
+		handle_error({error});
 	}
 };
 

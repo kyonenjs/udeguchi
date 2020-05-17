@@ -30,7 +30,7 @@ const download_hls_video = async (url, video_name, chapter_path, auth_headers) =
 			throw new Error('403');
 		}
 
-		handle_error(error['message']);
+		handle_error({error});
 	}
 };
 
@@ -42,7 +42,7 @@ const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 
 		await save_video(video_url, undefined, video_name, chapter_path);
 	} catch (error) {
-		handle_error(error['message']);
+		handle_error({error});
 	}
 };
 

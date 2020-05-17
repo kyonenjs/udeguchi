@@ -33,10 +33,10 @@ const login_with_username_password = async (username, password) => {
 		return create_auth_headers(access_token);
 	} catch (error) {
 		if (error['code'] === 'ENOTFOUND') {
-			handle_error('Unable to connect to Udemy server');
+			handle_error({error, message: 'Unable to connect to Udemy server'});
 		}
 
-		handle_error(`${error['message']}\n${error['body']}`);
+		handle_error({error, message: error['body']});
 	}
 };
 
@@ -55,12 +55,12 @@ const login_with_cookie = (cookie_file_name, cached_token) => {
 			return create_auth_headers(access_token);
 		}
 
-		handle_error('Cookie is not valid');
+		handle_error({error: new Error('Cookie is not valid')});
 	} catch (error) {
 		if (error.code === 'ENOENT') {
-			handle_error('File does not exist');
+			handle_error({error, message: 'File does not exist'});
 		} else {
-			handle_error(error['message']);
+			handle_error({error});
 		}
 	}
 };
