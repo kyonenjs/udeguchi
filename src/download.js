@@ -205,7 +205,7 @@ const download_lecture_video = async (content, course_path, chapter_path, auth_h
 			if (error.code === 'ENOENT') {
 				await download_simple_quiz(quiz_id, quiz_path, auth_headers)
 					.catch(error => {
-						throw error
+						throw error;
 					});
 			}
 		}

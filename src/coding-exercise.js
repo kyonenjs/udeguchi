@@ -18,7 +18,7 @@ const download_coding_exercise = async ({quiz_id, quiz_index, quiz_title, quiz_p
 	const {file_name: exercise_file_name, content: exercise_content} = quiz.prompt['initial_files'][0];
 	const {file_name: solution_file_name, content: solution_content} = quiz.prompt['solution_files'][0];
 
-	const exercise_name = `[exercise] ${quiz_title}${path.extname(exercise_file_name)}`
+	const exercise_name = `[exercise] ${quiz_title}${path.extname(exercise_file_name)}`;
 	const solution_name = `[exercise_solution] ${quiz_title}${path.extname(solution_file_name)}`;
 
 	const exercise_path = path.join(chapter_path, `${quiz_index} ${exercise_name}`);
@@ -27,6 +27,6 @@ const download_coding_exercise = async ({quiz_id, quiz_index, quiz_title, quiz_p
 	fs.writeFileSync(exercise_path, exercise_content);
 
 	fs.writeFileSync(solution_path, solution_content);
-}
+};
 
 module.exports = {download_coding_exercise};
