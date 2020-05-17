@@ -12,6 +12,8 @@ const {sub_domain} = require('./references.js');
 const {get_request, handle_error, render_spinner, green_bg, cyan_bg, safe_name} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
+const {download_coding_exercise} = require('./coding-exercise');
+const {download_simple_quiz} = require('./simple-quiz');
 
 const create_chapter_folder = (chapter_index, chapter_name, course_path) => {
 	chapter_name = safe_name(`${chapter_index.padStart(2, '0')} ${chapter_name}`);
@@ -129,7 +131,7 @@ const download_lecture_ebook = async ({content, chapter_path}) => {
 				throw error;
 			});
 
-			console.log(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}  ${green_bg('Done')}`);
+			return console.log(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}  ${green_bg('Done')}`);
 		}
 	}
 
@@ -183,6 +185,35 @@ const download_lecture_video = async (content, course_path, chapter_path, auth_h
 
 			throw error;
 		}
+
+		content.shift();
+		if (content.length === 0) return;
+	}
+
+	if (content[0]['_class'] === 'quiz' && content[0]['type'] === 'simple-quiz') {
+		const {object_index} = content.find(lecture => lecture['_class'] === 'lecture');
+
+		const object_index_string = `${object_index}`;
+		const quiz_index = object_index_string.padStart(3, '0');
+		const quiz_id = content[0].id;
+		const quiz_name = safe_name(`${quiz_index} [quiz] ${content[0].title}.html`);
+		const quiz_path = path.join(chapter_path, quiz_name);
+
+		await download_simple_quiz(quiz_id, quiz_path, auth_headers);
+
+		content.shift();
+		if (content.length === 0) return;
+	}
+
+	if (content[0]['_class'] === 'quiz' && content[0]['type'] === 'coding-exercise') {
+		const {object_index} = content.find(lecture => lecture['_class'] === 'lecture');
+
+		const object_index_string = `${object_index}`;
+		const quiz_index = object_index_string.padStart(3, '0');
+		const quiz_id = content[0].id;
+		const quiz_title = safe_name(content[0].title);
+
+		await download_coding_exercise({quiz_id, quiz_index, quiz_title, chapter_path, auth_headers});
 
 		content.shift();
 		if (content.length === 0) return;
@@ -286,7 +317,9 @@ const filter_course_data = (data, start = commander.chapterStart, end = commande
 			(content['_class'] === 'lecture' &&
 				content['asset']['asset_type'] === 'Article') ||
 			(content['_class'] === 'lecture' &&
-				content['asset']['asset_type'] === 'E-Book')
+				content['asset']['asset_type'] === 'E-Book') ||
+			(content['_class'] === 'quiz' && content['type'] === 'coding-exercise') ||
+			(content['_class'] === 'quiz' && content['type'] === 'simple-quiz')
 		);
 	});
 
