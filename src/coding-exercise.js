@@ -2,12 +2,11 @@ const fs = require('fs');
 const got = require('got');
 const path = require('path');
 
-const download_coding_exercise = async ({quiz_id, quiz_index, quiz_title, chapter_path, auth_headers}) => {
-	const quiz_name = `${quiz_index} [exercise_info] ${quiz_title}.html`;
-	const quiz_path = path.join(chapter_path, quiz_name);
-
+const download_coding_exercise = async ({quiz_id, quiz_index, quiz_title, quiz_path, chapter_path, auth_headers}) => {
 	const response = await got(`https://www.udemy.com/api-2.0/quizzes/${quiz_id}/assessments/?version=1&page_size=250&fields%5Bassessment%5D=id%2Cassessment_type%2Cprompt%2Ccorrect_response`, {
 		headers: auth_headers
+	}).catch(error => {
+		throw new Error(error.message);
 	});
 
 	const quiz = JSON.parse(response.body).results[0];

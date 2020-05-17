@@ -4,6 +4,8 @@ const fs = require('fs');
 const download_simple_quiz = async (quiz_id, quiz_path, auth_headers) => {
 	const response = await got(`https://www.udemy.com/api-2.0/quizzes/${quiz_id}/assessments/?version=1&page_size=250&fields%5Bassessment%5D=id%2Cassessment_type%2Cprompt%2Ccorrect_response`, {
 		headers: auth_headers
+	}).catch(error => {
+		throw new Error(error.message);
 	});
 
 	const quizzes = JSON.parse(response.body).results;

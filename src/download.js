@@ -199,7 +199,16 @@ const download_lecture_video = async (content, course_path, chapter_path, auth_h
 		const quiz_name = safe_name(`${quiz_index} [quiz] ${content[0].title}.html`);
 		const quiz_path = path.join(chapter_path, quiz_name);
 
-		await download_simple_quiz(quiz_id, quiz_path, auth_headers);
+		try {
+			fs.accessSync(quiz_path);
+		} catch (error) {
+			if (error.code === 'ENOENT') {
+				await download_simple_quiz(quiz_id, quiz_path, auth_headers)
+					.catch(error => {
+						throw error
+					});
+			}
+		}
 
 		content.shift();
 		if (content.length === 0) return;
@@ -212,8 +221,19 @@ const download_lecture_video = async (content, course_path, chapter_path, auth_h
 		const quiz_index = object_index_string.padStart(3, '0');
 		const quiz_id = content[0].id;
 		const quiz_title = safe_name(content[0].title);
+		const quiz_name = `${quiz_index} [exercise_info] ${quiz_title}.html`;
+		const quiz_path = path.join(chapter_path, quiz_name);
 
-		await download_coding_exercise({quiz_id, quiz_index, quiz_title, chapter_path, auth_headers});
+		try {
+			fs.accessSync(quiz_path);
+		} catch (error) {
+			if (error.code === 'ENOENT') {
+				await download_coding_exercise({quiz_id, quiz_index, quiz_title, quiz_path, chapter_path, auth_headers})
+					.catch(error => {
+						throw error;
+					});
+			}
+		}
 
 		content.shift();
 		if (content.length === 0) return;
