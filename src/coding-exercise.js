@@ -11,7 +11,7 @@ const download_coding_exercise = async ({quiz_id, quiz_index, quiz_title, quiz_p
 
 	const quiz = JSON.parse(response.body).results[0];
 
-	const html = `<html><head><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/image.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></head><body><div class="container"><div class="row"><div class="col-md-10 col-md-offset-1 ui image"><p class="lead"><div class="alert" role="alert"><h4><strong><i class="fa fa-sticky-note-o" aria-hidden="true"></i> Instructions</strong></h4><div class="alert alert-warning" role="alert">${quiz.prompt.instructions}</div></div></p></div></div></div></body></html>`;
+	const html = `<html><head><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/image.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></head><body><div class="container"><div class="row"><div class="col-md-10 col-md-offset-1 ui image"><p class="lead"><div class="alert" role="alert"><h4><strong><i class="fa fa-sticky-note-o" aria-hidden="true"></i> Instructions</strong></h4><div class="alert" role="alert" style="background-color: #E9FBE9;border-left: 8px solid #52E052;">${quiz.prompt.instructions}</div></div></p></div></div></div></body></html>`;
 
 	fs.writeFileSync(quiz_path, html);
 
