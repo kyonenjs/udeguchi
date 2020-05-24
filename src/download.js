@@ -386,68 +386,47 @@ const filter_course_data = (data, start = commander.chapterStart, end = commande
 	return lectures;
 };
 
-const download_course_info = async (course_content_url, auth_headers) => {
-	const response = await get_request(course_content_url, auth_headers);
+const download_course_multi_requests = async ({course_content_url, auth_headers, course_path, lecture_id, chapter_path, check_spinner, previous_data = []}) => {
+	const response = await get_request(course_content_url, auth_headers).catch(error => handle_error({error: new Error(error.message)}));
 
-	const data = JSON.parse(response.body).results;
+	const data = JSON.parse(response.body);
+	previous_data = [...previous_data, ...data['results']];
 
-	return filter_course_data(data);
-};
-
-const download_course_one_request = async (course_content_url, auth_headers, course_path) => {
-	const check_spinner = {stop: 0};
-	try {
-		console.log('\n');
-		render_spinner(check_spinner, `${cyan_bg('Getting course information')}`);
-
-		const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
-
-		console.log(`  ${green_bg('Done')}`);
-		clearTimeout(check_spinner.stop);
-
-		await download_lecture_video(lectures, course_path, null, auth_headers);
-	} catch (error) {
-		if (error['statusCode'] === 502 || error['statusCode'] === 503) {
-			await download_course_multi_requests(`${course_content_url}200`, {auth_headers, course_path}, check_spinner);
-		} else if (error['code'] === 'ENOTFOUND') {
-			handle_error({error, message: 'Unable to connect to Udemy server'});
-		} else if (error['message'].includes('lecture_id')) {
-			const {lecture_id, chapter_path} = JSON.parse(error['message']);
-
-			const lectures = await download_course_info(`${course_content_url}10000`, auth_headers);
-
-			const start_again_lecture = lectures.findIndex(content => content['id'] === lecture_id);
-
-			await download_lecture_video(lectures.slice(start_again_lecture), course_path, chapter_path, auth_headers);
-		} else {
-			handle_error({error});
-		}
-	}
-};
-
-const download_course_multi_requests = async (course_content_url, {auth_headers, course_path}, check_spinner, previous_data = []) => {
-	try {
-		if (course_content_url) {
-			const response = await get_request(course_content_url, auth_headers);
-
-			const data = JSON.parse(response.body);
-			previous_data = [...previous_data, ...data['results']];
-			await download_course_multi_requests(data['next'], {auth_headers, course_path}, check_spinner, previous_data);
-		} else {
+	if (data.next) {
+		await download_course_multi_requests({course_content_url: data.next, auth_headers, course_path, lecture_id, chapter_path, check_spinner, previous_data});
+	} else {
+		if (check_spinner) {
 			console.log(`  ${green_bg('Done')}`);
 			clearTimeout(check_spinner.stop);
-
-			await download_lecture_video(filter_course_data(previous_data), course_path, null, auth_headers);
 		}
-	} catch (error) {
-		handle_error({error});
+
+		let course_data = filter_course_data(previous_data);
+
+		if (lecture_id) {
+			const start_again_lecture = course_data.findIndex(content => content['id'] === lecture_id);
+
+			course_data = course_data.slice(start_again_lecture);
+		}
+
+		await download_lecture_video(course_data, course_path, chapter_path, auth_headers).catch(async error => {
+			if (error['message'].includes('lecture_id')) {
+				const {lecture_id, chapter_path} = JSON.parse(error['message']);
+
+				await download_course_multi_requests({course_content_url: course_content_url.replace(/page=\d/, 'page=1'), auth_headers, course_path, lecture_id, chapter_path})
+					.catch(error => handle_error({error}));
+			}
+		});
 	}
 };
 
 const download_course_contents = async (course_id, auth_headers, course_path) => {
-	const course_content_url = `https://${sub_domain}.udemy.com/api-2.0/courses/${course_id}/subscriber-curriculum-items/?fields[lecture]=supplementary_assets,title,asset,object_index&fields[chapter]=title,object_index,chapter_index,sort_order&fields[asset]=title,asset_type,length,url_set,hls_url,captions,body,file_size,filename,external_url&page=1&locale=en_US&page_size=`;
+	const course_content_url = `https://${sub_domain}.udemy.com/api-2.0/courses/${course_id}/subscriber-curriculum-items/?fields[lecture]=supplementary_assets,title,asset,object_index&fields[chapter]=title,object_index,chapter_index,sort_order&fields[asset]=title,asset_type,length,url_set,hls_url,captions,body,file_size,filename,external_url&page=1&locale=en_US&page_size=200`;
 
-	await download_course_one_request(course_content_url, auth_headers, course_path);
+	const check_spinner = {stop: 0};
+	console.log('\n');
+	render_spinner(check_spinner, `${cyan_bg('Getting course information')}`);
+
+	await download_course_multi_requests({course_content_url, auth_headers, course_path, check_spinner});
 };
 
 module.exports = {
