@@ -84,8 +84,8 @@ const extract_course_name = course_url => {
 const load_cached_cookie_file = () => {
 	const cached_cookie_path = path.join(process.cwd(), 'cached_cookie.json');
 	try {
-		const dataBuffer = fs.readFileSync(cached_cookie_path);
-		return JSON.parse(dataBuffer.toString());
+		const data = fs.readFileSync(cached_cookie_path, 'utf-8');
+		return JSON.parse(data);
 	} catch (error) {
 		return [];
 	}
