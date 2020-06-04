@@ -14,7 +14,7 @@ const download_simple_quiz = async (quiz_id, quiz_path, auth_headers) => {
 		const currentIndex = i + 1;
 
 		const answers = quiz.prompt.answers.map((answer, answer_index) => {
-			return `<div class="radio" style="display: flex; align-items: start"><span class="badge" style="margin-right: 15px;">${answer_index + 1}</span> <label><input type="radio" name="answer">${answer}</label></div>`;
+			return `<div class="radio" style="display: flex; align-items: start"><span class="badge" style="margin-right: 15px;">${answer_index + 1}</span> <label><input type="radio" name="answer${currentIndex}">${answer}</label></div>`;
 		}).join('');
 
 		const correct_answer_position = quiz['correct_response'][0].charCodeAt() - 97;
