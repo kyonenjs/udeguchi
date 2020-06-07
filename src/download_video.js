@@ -24,7 +24,7 @@ const download_hls_video = async (url, video_name, chapter_path, auth_headers) =
 			}
 		}
 
-		await save_video(url, quality_position, video_name, chapter_path, auth_header_hls);
+		await save_video({url, quality_position, video_name, chapter_path, auth_header_hls});
 	} catch (error) {
 		if (error['statusCode'] === 403) {
 			throw new Error('403');
@@ -40,13 +40,13 @@ const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 
 		const video_url = video_quality['file'] || urls_location[0]['file'];
 
-		await save_video(video_url, undefined, video_name, chapter_path);
+		await save_video({url: video_url, video_name, chapter_path});
 	} catch (error) {
 		handle_error({error});
 	}
 };
 
-const save_video = (url, quality_position, video_name, chapter_path, auth_header_hls) => {
+const save_video = ({url, quality_position, video_name, chapter_path, auth_header_hls}) => {
 	if (!url) {
 		console.log(`  ${yellow('(no download link)')}`);
 		return new Promise(resolve => resolve('Done'));
@@ -54,9 +54,9 @@ const save_video = (url, quality_position, video_name, chapter_path, auth_header
 
 	const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 
-	const download_command = quality_position
-		? `${auth_header_hls} -y -i "${url}"${quality_position}-acodec copy -bsf:a aac_adtstoasc -vcodec`
-		: `-headers "User-Agent: ${original_headers['User-Agent']}" -y -i "${url}" -c`;
+	const download_command = quality_position ?
+		`${auth_header_hls} -y -i "${url}"${quality_position}-acodec copy -bsf:a aac_adtstoasc -vcodec` :
+		`-headers "User-Agent: ${original_headers['User-Agent']}" -y -i "${url}" -c`;
 
 	return new Promise((resolve, reject) => {
 		exec(
