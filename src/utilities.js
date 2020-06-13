@@ -2,6 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const readline = require('readline');
+const stream = require('stream');
+const {promisify} = require('util');
+const pipeline = promisify(stream.pipeline);
+
 const got = require('got');
 const {red, yellow, green, cyan, grey} = require('kleur');
 
@@ -141,6 +145,13 @@ const cyan_bg = message => cyan().inverse(` ${message} `);
 
 const safe_name = name => name.replace(/[/\\?%*:|"<>$]/g, '_').replace(/^\.+|\.+$/g, '');
 
+const stream_download = async (url, path) => {
+	await pipeline(
+		got.stream(url, {headers: {'User-Agent': 'okhttp/3.12.1'}}),
+		fs.createWriteStream(path)
+	);
+};
+
 module.exports = {
 	get_request,
 	find_access_token,
@@ -152,5 +163,6 @@ module.exports = {
 	render_spinner,
 	green_bg,
 	cyan_bg,
-	safe_name
+	safe_name,
+	stream_download
 };

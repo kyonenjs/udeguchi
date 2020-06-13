@@ -1,9 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const got = require('got');
 const {gray, yellow, inverse} = require('kleur');
-const {headers: original_headers} = require('./references.js');
-const {green_bg, safe_name, handle_error} = require('./utilities');
+const {green_bg, safe_name, handle_error, stream_download} = require('./utilities');
 
 // Save links not from Udemy
 const download_asset_external_link = (chapter_path, lecture_index, asset) => {
@@ -48,38 +46,27 @@ const download_asset_file = async ({chapter_path, lecture_index, asset}) => {
 	}
 };
 
-const save_asset = ({asset_url, asset_name, asset_id, asset_size, chapter_path, lecture_index}) => {
+const save_asset = async ({asset_url, asset_name, asset_id, asset_size, chapter_path, lecture_index}) => {
 	const asset_name_with_path = path.join(chapter_path, asset_name);
 	const downloading_asset_name_with_path = asset_size < 100000 ?
 		asset_name_with_path :
 		path.join(chapter_path, `${lecture_index} downloading asset ${asset_id}`);
 
-	return new Promise((resolve, reject) => {
-		const stream = got.stream(asset_url, {
-			headers: {'User-Agent': original_headers['User-Agent']}
-		});
-		stream
-			.on('response', res => {
-				res.pipe(fs.createWriteStream(downloading_asset_name_with_path));
-
-				res.on('end', () => {
-					if (asset_size > 100000 || !asset_size) {
-						fs.rename(downloading_asset_name_with_path, asset_name_with_path, error => {
-							if (error) {
-								handle_error({error, message: `Unable to rename asset ${yellow(asset_name)}`});
-							}
-						});
-					}
-
-					console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
-					resolve('Finish');
-				});
-			})
-			.resume()
-			.on('error', error => {
-				reject(error);
-			});
+	await stream_download(
+		asset_url, downloading_asset_name_with_path
+	).catch(error => {
+		throw error;
 	});
+
+	if (asset_size > 100000 || !asset_size) {
+		fs.rename(downloading_asset_name_with_path, asset_name_with_path, error => {
+			if (error) {
+				handle_error({error, message: `Unable to rename asset ${yellow(asset_name)}`});
+			}
+		});
+	}
+
+	console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${green_bg('Done')}`);
 };
 
 const download_supplementary_assets = async (content, chapter_path, lecture_index) => {

@@ -1,15 +1,11 @@
 const fs = require('fs');
 const path = require('path');
-const stream = require('stream');
-const {promisify} = require('util');
-const pipeline = promisify(stream.pipeline);
 
 const commander = require('commander');
 const {yellow, magenta, red} = require('kleur');
-const got = require('got');
 
 const {sub_domain} = require('./references.js');
-const {get_request, handle_error, render_spinner, green_bg, cyan_bg, safe_name} = require('./utilities.js');
+const {get_request, handle_error, render_spinner, green_bg, cyan_bg, safe_name, stream_download} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 const {download_coding_exercise} = require('./coding-exercise');
@@ -122,9 +118,8 @@ const download_lecture_ebook = async ({content, chapter_path}) => {
 		fs.accessSync(lecture_path);
 	} catch (error) {
 		if (error.code === 'ENOENT') {
-			await pipeline(
-				got.stream(lecture_url, {headers: {'User-Agent': 'okhttp/3.12.1'}}),
-				fs.createWriteStream(lecture_path)
+			await stream_download(
+				lecture_url, lecture_path
 			).catch(error => {
 				process.stderr.write(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}`);
 
