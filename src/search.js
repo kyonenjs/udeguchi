@@ -3,7 +3,7 @@ const path = require('path');
 const commander = require('commander');
 const {yellow, red, inverse} = require('kleur');
 const {search_url, draft_course_search_url, sub_domain} = require('./references.js');
-const {handle_error, get_request, extract_course_name, render_spinner, green_bg, cyan_bg} = require('./utilities.js');
+const {handle_error, get_request, extract_course_name, render_spinner, green_bg, cyan_bg, path_exists} = require('./utilities.js');
 const {download_course_contents} = require('./download.js');
 const {login_with_username_password} = require('./login_methods.js');
 
@@ -13,16 +13,16 @@ const create_course_folder = (course_name, destination = process.cwd()) => {
 			destination = path.resolve(commander.output);
 		}
 
-		if (!fs.existsSync(`${path.join(destination, course_name)}`)) {
-			fs.mkdirSync(`${path.join(destination, course_name)}`);
+		const course_path = path.join(destination, course_name);
+
+		if (!path_exists(course_path)) {
+			fs.mkdirSync(course_path);
 			console.log(
-				`\nSaving course ${yellow(course_name)} to this location\n--> ${yellow(
-					path.join(destination, course_name)
-				)}`
+				`\nSaving course ${yellow(course_name)} to this location\n--> ${yellow(course_path)}`
 			);
 		}
 
-		return `${path.join(destination, course_name)}`;
+		return course_path;
 	} catch (error) {
 		handle_error({error});
 	}

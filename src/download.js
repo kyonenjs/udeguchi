@@ -5,34 +5,34 @@ const commander = require('commander');
 const {yellow, magenta, red} = require('kleur');
 
 const {sub_domain} = require('./references.js');
-const {get_request, handle_error, render_spinner, green_bg, cyan_bg, safe_name, stream_download} = require('./utilities.js');
+const {get_request, handle_error, render_spinner, green_bg, cyan_bg, safe_name, stream_download, path_exists} = require('./utilities.js');
 const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 const {download_coding_exercise} = require('./coding-exercise');
 const {download_simple_quiz} = require('./simple-quiz');
 
-const create_chapter_folder = (chapter_index, chapter_name, course_path) => {
-	chapter_name = safe_name(`${chapter_index.padStart(2, '0')} ${chapter_name}`);
+const create_chapter_folder = ({object_index, title}, course_path) => {
+	const chapter_index = `${object_index}`;
+
+	const chapter_name = safe_name(`${chapter_index.padStart(2, '0')} ${title}`);
 
 	console.log(`\n${green_bg('Chapter')}  ${chapter_name}`);
 
 	const chapter_path = path.join(course_path, chapter_name);
 
-	try {
-		fs.accessSync(chapter_path);
-	} catch (error) {
-		if (error.code === 'ENOENT') {
-			fs.mkdirSync(chapter_path);
-		} else {
-			handle_error({error});
-		}
+	if (!path_exists(chapter_path)) {
+		fs.mkdirSync(chapter_path);
 	}
 
 	return chapter_path;
 };
 
-const download_lecture_article = async (lecture_content, chapter_path) => {
-	const {object_index, supplementary_assets, title, asset} = lecture_content;
+const download_lecture_article = async (content, chapter_path) => {
+	if (content['asset']['asset_type'] !== 'Article') {
+		return;
+	}
+
+	const {object_index, supplementary_assets, title, asset} = content;
 	const article_response_index = `${object_index}`.padStart(3, '0');
 
 	if (supplementary_assets.length > 0) {
@@ -65,10 +65,12 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 			lang['locale_id'].toLowerCase().includes(commander.lang.toLowerCase())
 		);
 
-		if (lang) sub = [lang];
+		if (lang) {
+			sub = [lang];
+		}
 	}
 
-	if (fs.existsSync(path.join(chapter_path, `${video_name}.${sub[0]['locale_id']}.srt`))) {
+	if (path_exists(path.join(chapter_path, `${video_name}.${sub[0]['locale_id']}.srt`))) {
 		return;
 	}
 
@@ -99,7 +101,11 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 	}
 };
 
-const download_lecture_ebook = async ({content, chapter_path}) => {
+const download_lecture_ebook = async (content, chapter_path) => {
+	if (content['asset']['asset_type'] !== 'E-Book') {
+		return;
+	}
+
 	const {object_index, supplementary_assets, title, asset} = content;
 	const lecture_index = `${object_index}`.padStart(3, '0');
 	const lecture_name = safe_name(`${lecture_index} ${title}.pdf`);
@@ -114,200 +120,119 @@ const download_lecture_ebook = async ({content, chapter_path}) => {
 		);
 	}
 
-	try {
-		fs.accessSync(lecture_path);
-	} catch (error) {
-		if (error.code === 'ENOENT') {
-			await stream_download(
-				lecture_url, lecture_path
-			).catch(error => {
-				process.stderr.write(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}`);
-
-				throw error;
-			});
-
-			return console.log(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}  ${green_bg('Done')}`);
-		}
+	if (path_exists(lecture_path)) {
+		return console.log(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}  ${yellow('(already downloaded)')}`);
 	}
 
-	console.log(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}  ${yellow('(already downloaded)')}`);
+	await stream_download(
+		lecture_url, lecture_path
+	).catch(error => {
+		process.stderr.write(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}`);
+
+		throw error;
+	});
+
+	console.log(`\n  ${magenta().inverse(' Lecture ')}  ${lecture_name}  ${green_bg('Done')}`);
 };
 
-const retry_download = ({lecture_id, chapter_path}) => {
+const retry_download = (lecture_id, chapter_path) => {
 	console.log(`  ${yellow('(fail to connect, retrying)')}`);
 
 	throw new Error(JSON.stringify({lecture_id, chapter_path}));
 };
 
-const download_lecture_video = async (content, course_path, chapter_path, auth_headers) => {
-	if (content.length === 0) process.exit();
+const download_course = async (data, course_path, auth_headers) => {
+	let chapter_path = '';
+	for (let i = 0; i < data.length; i++) {
+		const content = data[i];
 
-	if (content[0]['_class'] === 'chapter') {
-		const {object_index: chapter_index, title: chapter_name} = content[0];
-
-		chapter_path = create_chapter_folder(`${chapter_index}`, chapter_name, course_path);
-		content.shift();
-		if (content.length === 0) return;
-	}
-
-	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Article') {
-		const lecture_content = content[0];
+		if (content['_class'] === 'chapter') {
+			chapter_path = create_chapter_folder(content, course_path);
+		}
 
 		try {
-			await download_lecture_article(lecture_content, chapter_path);
+			if (content['_class'] === 'lecture') {
+				await download_lecture_article(content, chapter_path);
+
+				await download_lecture_ebook(content, chapter_path);
+
+				await download_lecture_video(content, chapter_path, auth_headers);
+			}
+
+			if (content['_class'] === 'quiz' && content['type'] === 'simple-quiz') {
+				const {object_index} = data.slice(i).find(lecture => lecture['_class'] === 'lecture');
+
+				await download_simple_quiz({content, object_index, chapter_path, auth_headers});
+			}
+
+			if (content['_class'] === 'quiz' && content['type'] === 'coding-exercise') {
+				const {object_index} = data.slice(i).find(lecture => lecture['_class'] === 'lecture');
+
+				await download_coding_exercise({content, object_index, chapter_path, auth_headers});
+			}
 		} catch (error) {
 			if (error['statusCode'] === 403) {
-				retry_download({lecture_id: lecture_content['id'], chapter_path});
+				retry_download(content.id, chapter_path);
 			}
 
 			throw error;
 		}
+	}
+};
 
-		content.shift();
-		if (content.length === 0) return;
+const download_lecture_video = async (content, chapter_path, auth_headers) => {
+	if (content['asset']['asset_type'] !== 'Video') {
+		return;
 	}
 
-	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'E-Book') {
+	const video_lecture = content;
+
+	const lecture_index = `${video_lecture['object_index']}`;
+	const video_name = safe_name(`${lecture_index.padStart(3, '0')} ${video_lecture['title']}`);
+
+	if (!commander.skipSub && video_lecture['asset']['captions'].length > 0) {
+		await download_subtitles(video_lecture['asset']['captions'], video_name, chapter_path);
+	}
+
+	if (video_lecture['supplementary_assets'].length > 0) {
+		await download_supplementary_assets(
+			video_lecture['supplementary_assets'],
+			chapter_path,
+			lecture_index.padStart(3, '0')
+		);
+	}
+
+	if (video_lecture['asset']['url_set']) {
+		const check_spinner = {stop: 0};
+
 		try {
-			await download_lecture_ebook({
-				content: content[0],
-				chapter_path
-			});
+			if (path_exists(path.join(chapter_path, `${video_name}.mp4`))) {
+				return console.log(`\n  ${magenta().inverse(' Lecture ')}  ${video_name}  ${yellow('(already downloaded)')}`);
+			}
+
+			console.log();
+
+			render_spinner(check_spinner, `${magenta().inverse(' Lecture ')}  ${video_name}`);
+
+			const urls_location = video_lecture['asset']['url_set']['Video'];
+			const hls_link = commander.hls ? video_lecture['asset']['hls_url'] : null;
+
+			if (hls_link) {
+				await download_hls_video(`https${hls_link.slice(5)}`, video_name, chapter_path, auth_headers);
+			} else {
+				await download_mp4_video(urls_location, video_name, chapter_path);
+			}
+
+			clearTimeout(check_spinner.stop);
 		} catch (error) {
-			if (error['statusCode'] === 403) {
-				retry_download({lecture_id: content[0]['id'], chapter_path});
+			clearTimeout(check_spinner.stop);
+
+			if (error['message'] === '403') {
+				retry_download(video_lecture.id, chapter_path);
 			}
 
 			throw error;
 		}
-
-		content.shift();
-		if (content.length === 0) return;
-	}
-
-	if (content[0]['_class'] === 'quiz' && content[0]['type'] === 'simple-quiz') {
-		const {object_index} = content.find(lecture => lecture['_class'] === 'lecture');
-
-		const object_index_string = `${object_index}`;
-		const quiz_index = object_index_string.padStart(3, '0');
-		const quiz_id = content[0].id;
-		const quiz_name = safe_name(`${quiz_index} [quiz] ${content[0].title}.html`);
-		const quiz_path = path.join(chapter_path, quiz_name);
-
-		try {
-			fs.accessSync(quiz_path);
-		} catch (error) {
-			if (error.code === 'ENOENT') {
-				await download_simple_quiz(quiz_id, quiz_path, auth_headers)
-					.catch(error => {
-						throw error;
-					});
-			}
-		}
-
-		content.shift();
-		if (content.length === 0) return;
-	}
-
-	if (content[0]['_class'] === 'quiz' && content[0]['type'] === 'coding-exercise') {
-		const {object_index} = content.find(lecture => lecture['_class'] === 'lecture');
-
-		const object_index_string = `${object_index}`;
-		const quiz_index = object_index_string.padStart(3, '0');
-		const quiz_id = content[0].id;
-		const quiz_title = safe_name(content[0].title);
-		const quiz_name = `${quiz_index} [exercise_info] ${quiz_title}.html`;
-		const quiz_path = path.join(chapter_path, quiz_name);
-
-		try {
-			fs.accessSync(quiz_path);
-		} catch (error) {
-			if (error.code === 'ENOENT') {
-				await download_coding_exercise({quiz_id, quiz_index, quiz_title, quiz_path, chapter_path, auth_headers})
-					.catch(error => {
-						throw error;
-					});
-			}
-		}
-
-		content.shift();
-		if (content.length === 0) return;
-	}
-
-	if (content[0]['_class'] === 'lecture' && content[0]['asset']['asset_type'] === 'Video') {
-		const video_lecture = content[0];
-
-		const lecture_index = `${video_lecture['object_index']}`;
-		const video_name = safe_name(`${lecture_index.padStart(3, '0')} ${video_lecture['title']}`);
-
-		if (!commander.skipSub && video_lecture['asset']['captions'].length > 0) {
-			try {
-				await download_subtitles(video_lecture['asset']['captions'], video_name, chapter_path);
-			} catch (error) {
-				if (error['statusCode'] === 403) {
-					retry_download({lecture_id: video_lecture['id'], chapter_path});
-				}
-
-				throw error;
-			}
-		}
-
-		if (video_lecture['supplementary_assets'].length > 0) {
-			try {
-				await download_supplementary_assets(
-					video_lecture['supplementary_assets'],
-					chapter_path,
-					lecture_index.padStart(3, '0')
-				);
-			} catch (error) {
-				if (error['statusCode'] === 403) {
-					retry_download({lecture_id: video_lecture['id'], chapter_path});
-				}
-
-				throw error;
-			}
-		}
-
-		if (video_lecture['asset']['url_set']) {
-			const check_spinner = {stop: 0};
-
-			try {
-				if (fs.existsSync(path.join(chapter_path, `${video_name}.mp4`))) {
-					console.log(`\n  ${magenta().inverse(' Lecture ')}  ${video_name}  ${yellow('(already downloaded)')}`);
-
-					content.shift();
-					return await download_lecture_video(content, course_path, chapter_path, auth_headers);
-				}
-
-				console.log();
-
-				render_spinner(check_spinner, `${magenta().inverse(' Lecture ')}  ${video_name}`);
-
-				const urls_location = video_lecture['asset']['url_set']['Video'];
-				const hls_link = commander.hls ? video_lecture['asset']['hls_url'] : null;
-
-				if (hls_link) {
-					await download_hls_video(`https${hls_link.slice(5)}`, video_name, chapter_path, auth_headers);
-				} else {
-					await download_mp4_video(urls_location, video_name, chapter_path);
-				}
-
-				clearTimeout(check_spinner.stop);
-
-				content.shift();
-				await download_lecture_video(content, course_path, chapter_path, auth_headers);
-			} catch (error) {
-				clearTimeout(check_spinner.stop);
-
-				if (error['message'] === '403') {
-					retry_download({lecture_id: video_lecture['id'], chapter_path});
-				}
-
-				throw error;
-			}
-		}
-	} else {
-		await download_lecture_video(content, course_path, chapter_path, auth_headers);
 	}
 };
 
@@ -381,14 +306,14 @@ const filter_course_data = (data, start = commander.chapterStart, end = commande
 	return lectures;
 };
 
-const download_course_multi_requests = async ({course_content_url, auth_headers, course_path, lecture_id, chapter_path, check_spinner, previous_data = []}) => {
+const get_course_data_multi_requests = async ({course_content_url, auth_headers, course_path, lecture_id, chapter_path, check_spinner, previous_data = []}) => {
 	const response = await get_request(course_content_url, auth_headers).catch(error => handle_error({error: new Error(error.message)}));
 
 	const data = JSON.parse(response.body);
 	previous_data = [...previous_data, ...data['results']];
 
 	if (data.next) {
-		await download_course_multi_requests({course_content_url: data.next, auth_headers, course_path, lecture_id, chapter_path, check_spinner, previous_data});
+		await get_course_data_multi_requests({course_content_url: data.next, auth_headers, course_path, lecture_id, chapter_path, check_spinner, previous_data});
 	} else {
 		if (check_spinner) {
 			console.log(`  ${green_bg('Done')}`);
@@ -403,12 +328,14 @@ const download_course_multi_requests = async ({course_content_url, auth_headers,
 			course_data = course_data.slice(start_again_lecture);
 		}
 
-		await download_lecture_video(course_data, course_path, chapter_path, auth_headers).catch(async error => {
+		await download_course(course_data, course_path, auth_headers).catch(async error => {
 			if (error['message'].includes('lecture_id')) {
 				const {lecture_id, chapter_path} = JSON.parse(error['message']);
 
-				await download_course_multi_requests({course_content_url: course_content_url.replace(/page=\d/, 'page=1'), auth_headers, course_path, lecture_id, chapter_path})
+				await get_course_data_multi_requests({course_content_url: course_content_url.replace(/page=\d/, 'page=1'), auth_headers, course_path, lecture_id, chapter_path})
 					.catch(error => handle_error({error}));
+			} else {
+				handle_error({error});
 			}
 		});
 	}
@@ -421,7 +348,7 @@ const download_course_contents = async (course_id, auth_headers, course_path) =>
 	console.log('\n');
 	render_spinner(check_spinner, `${cyan_bg('Getting course information')}`);
 
-	await download_course_multi_requests({course_content_url, auth_headers, course_path, check_spinner});
+	await get_course_data_multi_requests({course_content_url, auth_headers, course_path, check_spinner});
 };
 
 module.exports = {

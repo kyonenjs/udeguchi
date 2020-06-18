@@ -1,8 +1,27 @@
 const fs = require('fs');
-const got = require('got');
 const path = require('path');
 
-const download_coding_exercise = async ({quiz_id, quiz_index, quiz_title, quiz_path, chapter_path, auth_headers}) => {
+const got = require('got');
+const {yellow} = require('kleur');
+
+const {safe_name, path_exists, render_spinner, cyan_bg, green_bg} = require('./utilities');
+
+const download_coding_exercise = async ({content, object_index, chapter_path, auth_headers}) => {
+	const quiz_index = `${object_index}`.padStart(3, '0');
+	const quiz_id = content.id;
+	const quiz_title = safe_name(content.title);
+	const quiz_name = `${quiz_index} [exercise_info] ${quiz_title}.html`;
+	const quiz_path = path.join(chapter_path, quiz_name);
+
+	if (path_exists(quiz_path)) {
+		return console.log(`\n   ${cyan_bg('Coding')}  ${quiz_name}  ${yellow('(already downloaded)')}`);
+	}
+
+	const check_spinner = {stop: 0};
+	console.log();
+
+	render_spinner(check_spinner, ` ${cyan_bg('Coding')}  ${quiz_name}`);
+
 	const response = await got(`https://www.udemy.com/api-2.0/quizzes/${quiz_id}/assessments/?version=1&page_size=250&fields%5Bassessment%5D=id%2Cassessment_type%2Cprompt%2Ccorrect_response`, {
 		headers: auth_headers
 	}).catch(error => {
@@ -30,6 +49,9 @@ const download_coding_exercise = async ({quiz_id, quiz_index, quiz_title, quiz_p
 
 		fs.writeFileSync(solution_path, solution_content);
 	});
+
+	console.log(`  ${green_bg('Done')}`);
+	clearTimeout(check_spinner.stop);
 };
 
 module.exports = {download_coding_exercise};

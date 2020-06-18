@@ -28,7 +28,7 @@ commander
 	.option('--no-hls', 'Use normal https server to download video')
 	.parse(process.argv);
 
-const {handle_error, extract_course_name} = require('./src/utilities.js');
+const {handle_error, extract_course_name, path_exists} = require('./src/utilities.js');
 const {find_owned_course} = require('./src/search.js');
 const {login_with_username_password, login_with_cookie} = require('./src/login_methods.js');
 const {use_cached_cookie} = require('./src/login_cached.js');
@@ -47,58 +47,58 @@ const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 
 const course_url = commander.args[0];
 
-if (fs.existsSync(path.join(process.cwd(), ffmpeg_name))) {
-	if (commander.output && !fs.existsSync(commander.output)) {
-		handle_error({error: new Error(`Location ${yellow(path.resolve(commander.output))} does not exist!`)});
-	}
+if (!path_exists(path.join(process.cwd(), ffmpeg_name))) {
+	handle_error({error: new Error('ffmpeg not found. Please follow: https://github.com/kyonenjs/udeguchi#Require')});
+}
 
-	if (!commander.username && !commander.password && !commander.cookie) {
-		const rl = readline.createInterface(process.stdin, process.stdout);
+if (commander.output && !path_exists(commander.output)) {
+	handle_error({error: new Error(`Location ${yellow(path.resolve(commander.output))} does not exist!`)});
+}
 
-		let username = '';
-		let password = '';
+if (!commander.username && !commander.password && !commander.cookie) {
+	const rl = readline.createInterface(process.stdin, process.stdout);
 
-		rl.question(`\n${yellow('Username')}: `, mail => {
-			username = mail;
-			rl.setPrompt(`${yellow('Password')}: `);
-			rl.prompt();
+	let username = '';
+	let password = '';
 
-			rl.on('line', pass => {
-				password = pass;
-				rl.close();
-			});
+	rl.question(`\n${yellow('Username')}: `, mail => {
+		username = mail;
+		rl.setPrompt(`${yellow('Password')}: `);
+		rl.prompt();
+
+		rl.on('line', pass => {
+			password = pass;
+			rl.close();
 		});
+	});
 
-		rl.on('close', () => {
-			(async () => {
-				if (fs.existsSync(path.join(process.cwd(), 'cached_cookie.json'))) {
-					return use_cached_cookie(username, password);
-				}
-
-				const auth_headers = await login_with_username_password(username, password);
-
-				find_owned_course(extract_course_name(course_url), auth_headers);
-			})();
-		});
-	}
-
-	if (commander.username && commander.password) {
+	rl.on('close', () => {
 		(async () => {
-			if (fs.existsSync(path.join(process.cwd(), 'cached_cookie.json'))) {
-				return use_cached_cookie(commander.username, commander.password);
+			if (path_exists(path.join(process.cwd(), 'cached_cookie.json'))) {
+				return use_cached_cookie(username, password);
 			}
 
-			const auth_headers = await login_with_username_password(commander.username, commander.password);
+			const auth_headers = await login_with_username_password(username, password);
 
 			find_owned_course(extract_course_name(course_url), auth_headers);
 		})();
-	}
+	});
+}
 
-	if (commander.cookie) {
-		const auth_headers = login_with_cookie(commander.cookie);
+if (commander.username && commander.password) {
+	(async () => {
+		if (path_exists(path.join(process.cwd(), 'cached_cookie.json'))) {
+			return use_cached_cookie(commander.username, commander.password);
+		}
+
+		const auth_headers = await login_with_username_password(commander.username, commander.password);
 
 		find_owned_course(extract_course_name(course_url), auth_headers);
-	}
-} else {
-	handle_error({error: new Error('ffmpeg not found. Please follow: https://github.com/kyonenjs/udeguchi#Require')});
+	})();
+}
+
+if (commander.cookie) {
+	const auth_headers = login_with_cookie(commander.cookie);
+
+	find_owned_course(extract_course_name(course_url), auth_headers);
 }

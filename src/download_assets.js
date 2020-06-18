@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const {gray, yellow, inverse} = require('kleur');
-const {green_bg, safe_name, handle_error, stream_download} = require('./utilities');
+const {green_bg, safe_name, handle_error, stream_download, path_exists} = require('./utilities');
 
 // Save links not from Udemy
 const download_asset_external_link = (chapter_path, lecture_index, asset) => {
@@ -15,7 +15,7 @@ const download_asset_external_link = (chapter_path, lecture_index, asset) => {
 		if (!urls_in_file.includes(asset_url.trim())) {
 			fs.appendFileSync(`${asset_name_with_path}.txt`, `${asset_url.trim()}\n`);
 		}
-	} catch (error) {
+	} catch (_) {
 		fs.writeFileSync(`${asset_name_with_path}.txt`, `${asset_url.trim()}\n`);
 	}
 };
@@ -28,22 +28,22 @@ const download_asset_file = async ({chapter_path, lecture_index, asset}) => {
 	const asset_id = asset['id'];
 	const asset_size = asset['file_size'];
 
-	if (fs.existsSync(asset_name_with_path)) {
-		console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
-	} else {
-		await save_asset({
-			asset_url,
-			asset_name,
-			asset_id,
-			asset_size,
-			chapter_path,
-			lecture_index
-		}).catch(error => {
-			process.stderr.write(`\n    ${gray(inverse(' Asset '))}  ${asset_name}`);
-
-			throw error;
-		});
+	if (path_exists(asset_name_with_path)) {
+		return console.log(`\n    ${gray(inverse(' Asset '))}  ${asset_name}  ${yellow('(already downloaded)')}`);
 	}
+
+	await save_asset({
+		asset_url,
+		asset_name,
+		asset_id,
+		asset_size,
+		chapter_path,
+		lecture_index
+	}).catch(error => {
+		process.stderr.write(`\n    ${gray(inverse(' Asset '))}  ${asset_name}`);
+
+		throw error;
+	});
 };
 
 const save_asset = async ({asset_url, asset_name, asset_id, asset_size, chapter_path, lecture_index}) => {

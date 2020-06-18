@@ -62,9 +62,9 @@ const extract_course_name = course_url => {
 		const course_name_in_url =
 			course_pathname[1] !== 'course' &&
 			course_pathname[1] !== 'draft' &&
-			course_pathname[1] !== 'gift'
-				? course_pathname[1]
-				: course_pathname[2];
+			course_pathname[1] !== 'gift' ?
+				course_pathname[1] :
+				course_pathname[2];
 		if (!course_name_in_url) {
 			handle_error({error: new Error('Course URL is not valid')});
 		}
@@ -90,7 +90,7 @@ const load_cached_cookie_file = () => {
 	try {
 		const data = fs.readFileSync(cached_cookie_path, 'utf-8');
 		return JSON.parse(data);
-	} catch (error) {
+	} catch (_) {
 		return [];
 	}
 };
@@ -152,6 +152,15 @@ const stream_download = async (url, path) => {
 	);
 };
 
+const path_exists = path => {
+	try {
+		fs.accessSync(path);
+		return true;
+	} catch (_) {
+		return false;
+	}
+};
+
 module.exports = {
 	get_request,
 	find_access_token,
@@ -164,5 +173,6 @@ module.exports = {
 	green_bg,
 	cyan_bg,
 	safe_name,
-	stream_download
+	stream_download,
+	path_exists
 };
