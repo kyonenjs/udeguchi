@@ -141,8 +141,7 @@ const retry_download = (lecture_id, chapter_path) => {
 	throw new Error(JSON.stringify({lecture_id, chapter_path}));
 };
 
-const download_course = async (data, course_path, auth_headers) => {
-	let chapter_path = '';
+const download_course = async (data, course_path, auth_headers, chapter_path = '') => {
 	for (let i = 0; i < data.length; i++) {
 		const content = data[i];
 
@@ -328,7 +327,7 @@ const get_course_data_multi_requests = async ({course_content_url, auth_headers,
 			course_data = course_data.slice(start_again_lecture);
 		}
 
-		await download_course(course_data, course_path, auth_headers).catch(async error => {
+		await download_course(course_data, course_path, auth_headers, chapter_path).catch(async error => {
 			if (error['message'].includes('lecture_id')) {
 				const {lecture_id, chapter_path} = JSON.parse(error['message']);
 
