@@ -4,6 +4,7 @@
 	"main": "index.js",
 	"license": "MIT",
 	"dependencies": {
+		"adm-zip": "^0.4.16",
 		"commander": "^2.20.0",
 		"got": "^9.6.0",
 		"kleur": "^3.0.3"

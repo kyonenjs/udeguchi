@@ -1,10 +1,16 @@
 const fs = require('fs');
 const path = require('path');
 
+const {safe_name, path_exists, render_spinner, cyan_bg, green_bg, handle_error} = require('./utilities');
+
 const got = require('got');
 const {yellow} = require('kleur');
-
-const {safe_name, path_exists, render_spinner, cyan_bg, green_bg} = require('./utilities');
+try {
+	require.resolve('adm-zip');
+} catch (error) {
+	handle_error({error, message: `'adm-zip' dependency not found. Please install it with command 'npm install' in the terminal`});
+}
+const AdmZip = require('adm-zip');
 
 const download_coding_exercise = async ({content, object_index, chapter_path, auth_headers}) => {
 	const quiz_index = `${object_index}`.padStart(3, '0');
@@ -34,17 +40,34 @@ const download_coding_exercise = async ({content, object_index, chapter_path, au
 
 	fs.writeFileSync(quiz_path, html);
 
-	const {file_name: exercise_file_name, content: exercise_content} = quiz.prompt['initial_files'][0];
-	const {file_name: solution_file_name, content: solution_content} = quiz.prompt['solution_files'][0];
+	const exercise_zip = new AdmZip();
+	quiz.prompt['initial_files'].forEach(file => {
+		const {file_name: exercise_file_name, content: exercise_content} = file;
 
-	const exercise_name = `[exercise] ${quiz_title}${path.extname(exercise_file_name)}`;
-	const solution_name = `[exercise_solution] ${quiz_title}${path.extname(solution_file_name)}`;
-
+		exercise_zip.addFile(path.extname(exercise_file_name) ?
+			exercise_file_name :
+			`${exercise_file_name}.txt`,
+			Buffer.alloc(exercise_content.length, exercise_content)
+		);
+	});
+	const exercise_name = `[exercise] ${quiz_title}.zip`;
 	const exercise_path = path.join(chapter_path, `${quiz_index} ${exercise_name}`);
+
+	const solution_zip = new AdmZip();
+	quiz.prompt['solution_files'].forEach(file => {
+		const {file_name: solution_file_name, content: solution_content} = file;
+
+		solution_zip.addFile(path.extname(solution_file_name) ?
+			solution_file_name :
+			`${solution_file_name}.txt`,
+			Buffer.alloc(solution_content.length, solution_content)
+		);
+	});
+	const solution_name = `[exercise_solution] ${quiz_title}.zip`;
 	const solution_path = path.join(chapter_path, `${quiz_index} ${solution_name}`);
 
-	fs.writeFileSync(exercise_path, exercise_content);
-	fs.writeFileSync(solution_path, solution_content);
+	exercise_zip.writeZip(exercise_path);
+	solution_zip.writeZip(solution_path);
 
 	console.log(`  ${green_bg('Done')}`);
 	clearTimeout(check_spinner.stop);
