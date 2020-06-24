@@ -7,9 +7,10 @@ const got = require('got');
 const {yellow} = require('kleur');
 try {
 	require.resolve('adm-zip');
-} catch (error) {
-	handle_error({error, message: `'adm-zip' dependency not found. Please install it with command 'npm install' in the terminal`});
+} catch (_) {
+	handle_error({error: new Error('"adm-zip" dependency not found. Please install it with command "npm install" in the terminal')});
 }
+
 const AdmZip = require('adm-zip');
 
 const download_coding_exercise = async ({content, object_index, chapter_path, auth_headers}) => {
@@ -46,8 +47,7 @@ const download_coding_exercise = async ({content, object_index, chapter_path, au
 
 		exercise_zip.addFile(path.extname(exercise_file_name) ?
 			exercise_file_name :
-			`${exercise_file_name}.txt`,
-			Buffer.alloc(exercise_content.length, exercise_content)
+			`${exercise_file_name}.txt`, Buffer.alloc(exercise_content.length, exercise_content)
 		);
 	});
 	const exercise_name = `[exercise] ${quiz_title}.zip`;
@@ -59,8 +59,7 @@ const download_coding_exercise = async ({content, object_index, chapter_path, au
 
 		solution_zip.addFile(path.extname(solution_file_name) ?
 			solution_file_name :
-			`${solution_file_name}.txt`,
-			Buffer.alloc(solution_content.length, solution_content)
+			`${solution_file_name}.txt`, Buffer.alloc(solution_content.length, solution_content)
 		);
 	});
 	const solution_name = `[exercise_solution] ${quiz_title}.zip`;
