@@ -56,6 +56,10 @@ const download_lecture_article = async (content, chapter_path) => {
 };
 
 const download_subtitles = (sub, video_name, chapter_path) => {
+	if (path_exists(path.join(chapter_path, `${video_name}.${sub[0]['locale_id']}.srt`))) {
+		return;
+	}
+
 	const subtitle_request_headers = {
 		'User-Agent': 'okhttp/3.11.0'
 	};
@@ -65,13 +69,7 @@ const download_subtitles = (sub, video_name, chapter_path) => {
 			lang['locale_id'].toLowerCase().includes(commander.lang.toLowerCase())
 		);
 
-		if (lang) {
-			sub = [lang];
-		}
-	}
-
-	if (path_exists(path.join(chapter_path, `${video_name}.${sub[0]['locale_id']}.srt`))) {
-		return;
+		sub = lang ? [lang] : [];
 	}
 
 	try {
