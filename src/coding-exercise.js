@@ -34,21 +34,17 @@ const download_coding_exercise = async ({content, object_index, chapter_path, au
 
 	fs.writeFileSync(quiz_path, html);
 
-	quiz.prompt['initial_files'].forEach(file => {
-		const {file_name: exercise_file_name, content: exercise_content} = file;
-		const exercise_name = `[exercise] ${quiz_title}${path.extname(exercise_file_name)}`;
-		const exercise_path = path.join(chapter_path, `${quiz_index} ${exercise_name}`);
+	const {file_name: exercise_file_name, content: exercise_content} = quiz.prompt['initial_files'][0];
+	const {file_name: solution_file_name, content: solution_content} = quiz.prompt['solution_files'][0];
 
-		fs.writeFileSync(exercise_path, exercise_content);
-	});
+	const exercise_name = `[exercise] ${quiz_title}${path.extname(exercise_file_name)}`;
+	const solution_name = `[exercise_solution] ${quiz_title}${path.extname(solution_file_name)}`;
 
-	quiz.prompt['solution_files'].forEach(file => {
-		const {file_name: solution_file_name, content: solution_content} = file;
-		const solution_name = `[exercise_solution] ${quiz_title}${path.extname(solution_file_name)}`;
-		const solution_path = path.join(chapter_path, `${quiz_index} ${solution_name}`);
+	const exercise_path = path.join(chapter_path, `${quiz_index} ${exercise_name}`);
+	const solution_path = path.join(chapter_path, `${quiz_index} ${solution_name}`);
 
-		fs.writeFileSync(solution_path, solution_content);
-	});
+	fs.writeFileSync(exercise_path, exercise_content);
+	fs.writeFileSync(solution_path, solution_content);
 
 	console.log(`  ${green_bg('Done')}`);
 	clearTimeout(check_spinner.stop);
