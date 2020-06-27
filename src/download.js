@@ -10,6 +10,7 @@ const {download_hls_video, download_mp4_video} = require('./download_video.js');
 const {download_supplementary_assets} = require('./download_assets');
 const {download_coding_exercise} = require('./coding-exercise');
 const {download_simple_quiz} = require('./simple-quiz');
+const download_assignment = require('./assignment');
 
 const create_chapter_folder = ({object_index, title}, course_path) => {
 	const chapter_index = `${object_index}`;
@@ -167,6 +168,12 @@ const download_course = async (data, course_path, auth_headers, chapter_path = '
 
 				await download_coding_exercise({content, object_index, chapter_path, auth_headers});
 			}
+
+			if (content['_class'] === 'practice') {
+				const {object_index} = data.slice(i).find(lecture => lecture['_class'] === 'lecture');
+
+				await download_assignment(content, object_index, chapter_path, auth_headers);
+			}
 		} catch (error) {
 			if (error['statusCode'] === 403) {
 				retry_download(content.id, chapter_path);
@@ -256,7 +263,8 @@ const filter_course_data = (data, start = commander.chapterStart, end = commande
 			(content['_class'] === 'lecture' &&
 				content['asset']['asset_type'] === 'E-Book') ||
 			(content['_class'] === 'quiz' && content['type'] === 'coding-exercise') ||
-			(content['_class'] === 'quiz' && content['type'] === 'simple-quiz')
+			(content['_class'] === 'quiz' && content['type'] === 'simple-quiz') ||
+			(content['_class'] === 'practice')
 		);
 	});
 
