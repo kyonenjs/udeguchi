@@ -146,10 +146,16 @@ const cyan_bg = message => cyan().inverse(` ${message} `);
 const safe_name = name => name.replace(/[/\\?%*:|"<>$]/g, '_').replace(/^\.+|\.+$/g, '');
 
 const stream_download = async (url, path) => {
-	await pipeline(
-		got.stream(url, {headers: {'User-Agent': 'okhttp/3.12.1'}}),
-		fs.createWriteStream(path)
-	);
+	try {
+		await pipeline(
+			got.stream(url, {headers: {'User-Agent': 'okhttp/3.12.1'}}),
+			fs.createWriteStream(path)
+		);
+	} catch (error) {
+		fs.unlinkSync(path);
+
+		throw error;
+	}
 };
 
 const path_exists = path => {
