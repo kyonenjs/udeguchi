@@ -49,7 +49,9 @@ const download_mp4_video = async (urls_location, video_name, chapter_path) => {
 const save_video = ({url, quality_position, video_name, chapter_path, auth_header_hls}) => {
 	if (!url) {
 		console.log(`  ${yellow('(no download link)')}`);
-		return new Promise(resolve => resolve('Done'));
+		return new Promise(resolve => {
+			resolve('Done');
+		});
 	}
 
 	const ffmpeg_name = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
