@@ -41,7 +41,7 @@ const download_simple_quiz = async ({content, object_index, chapter_path, auth_h
 
 		const correct_answer = quiz.prompt.answers[correct_answer_position];
 
-		const explanation = quiz.prompt.feedbacks[correct_answer_position] ?
+		const explanation = quiz.prompt.feedbacks && quiz.prompt.feedbacks[correct_answer_position] ?
 			`<div class="alert" style="margin-bottom: 0;" role="alert"><h4><strong><i class="fa fa-sticky-note-o" aria-hidden="true"></i> Explanation</strong></h4><div class="alert" role="alert" style="background-color: #E9FBE9;border-left: 8px solid #52E052; margin-bottom: 0;"><p>${quiz.prompt.feedbacks[correct_answer_position]}</p></div></div>` :
 			'';
 
