@@ -1,6 +1,6 @@
 try {
 	require.resolve('commander');
-} catch (error) {
+} catch (_) {
 	console.log('\nnpm dependencies not found\nPlease follow steps here: https://github.com/kyonenjs/udeguchi#require');
 	process.exit();
 }
