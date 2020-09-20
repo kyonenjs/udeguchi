@@ -33,8 +33,8 @@
 
 ### `Link download`
 
-- [Windows 64-bit](https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-4.3.1-win64-static.zip)
-- [Windows 32-bit](https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-4.3.1-win32-static.zip)
+- [Windows 64-bit](https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip)
+- [Windows 32-bit](https://mega.nz/file/W8hxUZBT#TmWnwR0DKxKaHMBwMO9tUsf9YYKLiN3cX9UC6Kpdofs)
 - [macOS](https://evermeet.cx/ffmpeg/ffmpeg-4.3.1.zip)
 - [Linux 64-bit](https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz)
 - [Linux 32-bit](https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-i686-static.tar.xz)
