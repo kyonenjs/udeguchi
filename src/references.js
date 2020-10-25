@@ -20,6 +20,7 @@ if (!sub_domain) {
 sub_domain = sub_domain[1];
 
 const headers = {
+	'x-udemy-client-secret': 'a7c630646308824b2301fdb60ecfd8a0947e82d5',
 	authorization: 'Basic YWQxMmVjYTljYmUxN2FmYWM2MjU5ZmU1ZDk4NDcxYTY6YTdjNjMwNjQ2MzA4ODI0YjIzMDFmZGI2MGVjZmQ4YTA5NDdlODJkNQ==',
 	'accept-encoding': 'gzip',
 	'accept-language': 'en_US',
