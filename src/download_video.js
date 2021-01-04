@@ -67,8 +67,8 @@ const save_video = ({url, quality_position, video_name, chapter_path, auth_heade
 				'downloading.mp4'
 			)}"`,
 			{maxBuffer: 1024 * 1024 * 100},
-			err => {
-				if (err) {
+			error => {
+				if (error) {
 					return reject(new Error('Failed to download the video!'));
 				}
 
