@@ -5,7 +5,7 @@ const commander = require('commander');
 if (!commander.args[0]) {
 	console.log(`\n${inverse(red(' Error '))} Missing course URL`);
 	process.exit();
-} else if (!commander.args[0].match(/^ht{2}ps:\/{2}(.+)\.udemy\.com\/.+/i)) {
+} else if (!(/^ht{2}ps:\/{2}(.+)\.udemy\.com\/.+/i).test(commander.args[0])) {
 	console.log(`\n${inverse(red(' Error '))} Course URL is not valid`);
 	process.exit();
 }
