@@ -16,7 +16,7 @@ const download_hls_video = async (url, video_name, chapter_path, auth_headers) =
 		let quality_position = ' ';
 		const auth_header_hls = `-user-agent "okhttp/3.11.0" -headers "Authorization: ${auth_headers.Authorization}"`;
 		if (commander.quality) {
-			video_quality_index = video_resolutions.findIndex(r => r === `${commander.quality}`);
+			video_quality_index = video_resolutions.indexOf(`${commander.quality}`);
 			if (video_quality_index !== -1) {
 				// -map p:1
 				// choose second resolution
